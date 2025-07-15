@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { apiRequest } from "@/lib/queryClient";
 import { toast } from "sonner";
 import Sidebar from "@/components/dashboard/sidebar";
 import Header from "@/components/dashboard/header";
@@ -42,6 +40,9 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
+import { fetchAllJobs } from "@/redux/slices/jobSlice";
+import { RootState, AppDispatch } from "@/redux/store";
+import { useSelector, useDispatch } from "react-redux";
 
 interface JobListing {
   id: number;
@@ -69,30 +70,17 @@ export default function Jobs() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deleteJobId, setDeleteJobId] = useState<number | null>(null);
   const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
-
-  const { data: jobs, isLoading } = useQuery<JobListing[]>({
-    queryKey: ["/api/jobs"],
-  });
-
-  const deleteJobMutation = useMutation({
-    mutationFn: (jobId: number) => apiRequest(`/api/jobs/${jobId}`, "DELETE"),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
-      toast.success("Success", {
-        description: "Job deleted successfully",
-      });
-      setDeleteJobId(null);
-    },
-    onError: () => {
-      toast.error("Error", {
-        description: "Failed to delete job",
-      });
-    },
-  });
+  const { allJobs, isLoading, error } = useSelector(
+    (state: RootState) => state.jobs
+  );
+  const dispatch = useDispatch<AppDispatch>()
+  
+  useEffect(() => {
+    dispatch(fetchAllJobs());
+  },[dispatch])
 
   const filteredJobs =
-    jobs?.filter((job) => {
+    allJobs?.filter((job) => {
       const matchesSearch =
         job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         job.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -113,11 +101,11 @@ export default function Jobs() {
     setDeleteJobId(jobId);
   };
 
-  const confirmDelete = () => {
-    if (deleteJobId) {
-      deleteJobMutation.mutate(deleteJobId);
-    }
-  };
+  // const confirmDelete = () => {
+  //   if (deleteJobId) {
+  //     deleteJobMutation.mutate(deleteJobId);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-background">
@@ -267,12 +255,12 @@ export default function Jobs() {
                           {job.location}
                         </div>
                         <div className="flex items-center text-green-600 font-medium">
-                          <DollarSign className="w-4 h-4 mr-2" />$
-                          {job.hourlyRate}/hour
+                          <DollarSign className="w-4 h-4 " />
+                         {job.hourlyRate}/hour
                         </div>
                         <div className="flex items-center text-muted-foreground">
                           <Users className="w-4 h-4 mr-2" />
-                          Ages: {job.childrenAges}
+                          Ages:{Object.values(job.childrenAges?.info || {}).join(", ")}
                         </div>
                         <div className="flex items-center text-muted-foreground">
                           <Clock className="w-4 h-4 mr-2" />
@@ -319,7 +307,7 @@ export default function Jobs() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>
+            <AlertDialogAction onClick={() => console.log("Deleted")}>
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

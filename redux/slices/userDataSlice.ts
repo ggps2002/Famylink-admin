@@ -37,9 +37,16 @@ interface userData {
   totalFamilies: number | null;
   totalNannies: number | null;
   topNannies: TopUsers[] | null;
-  topFamilies: TopUsers[] | null
-  users: Users[] | null;
-  pagination: {
+  topFamilies: TopUsers[] | null;
+  nannies: Users[] | null;
+  families: Users[] | null;
+  paginationNanny: {
+    totalRecords: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+  } | null;
+  paginationFamily: {
     totalRecords: number;
     totalPages: number;
     currentPage: number;
@@ -54,8 +61,10 @@ const initialState: userData = {
   totalNannies: null,
   topNannies: null,
   topFamilies: null,
-  users: null,
-  pagination: null,
+  nannies: null,
+  families: null,
+  paginationNanny: null,
+  paginationFamily: null,
   isLoading: false,
   error: null,
 };
@@ -105,19 +114,41 @@ export const fetchTopUsersThunk = createAsyncThunk(
 );
 
 // Thunk to fetch all Nannies
-export const fetchUsersThunk = createAsyncThunk(
-  "jobs/fetchUsersThunk",
-  async ({ userType }: { userType: string }, { getState, rejectWithValue }) => {
+export const fetchNanniesThunk = createAsyncThunk(
+  "jobs/fetchNanniesThunk",
+  async (_, { getState, rejectWithValue }) => {
     const { auth } = getState();
     const { accessToken } = auth;
     try {
-      const response = await api.get(`/userData/users?userType=${userType}`, {
+      const response = await api.get(`/userData/nannies`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           // ⚠️ Don't manually set Content-Type here, Axios will handle it
         },
       }); // 🛑 Adjust the path if needed
-      console.log("Nannies", response.data);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch top nannies"
+      );
+    }
+  }
+);
+
+// Thunk to fetch all Nannies
+export const fetchFamiliesThunk = createAsyncThunk(
+  "jobs/fetchFamiliesThunk",
+  async (_, { getState, rejectWithValue }) => {
+    const { auth } = getState();
+    const { accessToken } = auth;
+    try {
+      const response = await api.get(`/userData/families`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          // ⚠️ Don't manually set Content-Type here, Axios will handle it
+        },
+      }); // 🛑 Adjust the path if needed
+      console.log("Families", response.data)
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -159,16 +190,29 @@ const userDataSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      .addCase(fetchUsersThunk.pending, (state) => {
+      .addCase(fetchNanniesThunk.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchUsersThunk.fulfilled, (state, action) => {
+      .addCase(fetchNanniesThunk.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.users = action.payload.data;
-        state.pagination = action.payload.pagination;
+        state.nannies = action.payload.data;
+        state.paginationNanny = action.payload.pagination;
       })
-      .addCase(fetchUsersThunk.rejected, (state, action) => {
+      .addCase(fetchNanniesThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+            .addCase(fetchFamiliesThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchFamiliesThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.families = action.payload.data;
+        state.paginationFamily = action.payload.pagination;
+      })
+      .addCase(fetchFamiliesThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });

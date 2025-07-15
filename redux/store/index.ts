@@ -14,12 +14,14 @@ import authReducer from "../slices/authSlice";
 import jobReducer from "../slices/jobSlice";
 import userDataReducer from "../slices/userDataSlice";
 import revenueReducer from "../slices/revenueSlice";
+import blogReducer from '../slices/blogSlice'
 
 const rootReducer = combineReducers({
   auth: authReducer,
   jobs: jobReducer,
   userData: userDataReducer,
   revenue: revenueReducer,
+  blogs: blogReducer
 });
 
 const persistConfig = {

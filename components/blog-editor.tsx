@@ -19,14 +19,29 @@ import {
   Eye,
   Save,
   Type,
+  Filter,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 interface BlogEditorProps {
   initialData?: {
     title: string;
     content: string;
     excerpt: string;
-    featuredImage?: string;
+    category:
+      | "Tips for Parents"
+      | "Tips For Nannies"
+      | "Platform Tips"
+      | "Special Needs Care"
+      | "Do It Yourself"
+      | "Nanny Activities"
+      | "News";
   };
   onSave: (data: {
     title: string;
@@ -38,15 +53,27 @@ interface BlogEditorProps {
   isLoading?: boolean;
 }
 
-export default function BlogEditor({ initialData, onSave, onCancel, isLoading = false }: BlogEditorProps) {
+export default function BlogEditor({
+  initialData,
+  onSave,
+  onCancel,
+  isLoading = false,
+}: BlogEditorProps) {
   const [title, setTitle] = useState(initialData?.title || "");
   const [content, setContent] = useState(initialData?.content || "");
   const [excerpt, setExcerpt] = useState(initialData?.excerpt || "");
-  const [featuredImage, setFeaturedImage] = useState(initialData?.featuredImage || "");
+  const [category, setCategory] = useState(initialData?.category || "");
+  // const [featuredImage, setFeaturedImage] = useState(
+  //   initialData?.featuredImage || ""
+  // );
   const [activeTab, setActiveTab] = useState("write");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const insertText = (before: string, after: string = "", placeholder: string = "") => {
+  const insertText = (
+    before: string,
+    after: string = "",
+    placeholder: string = ""
+  ) => {
     if (!textareaRef.current) return;
 
     const textarea = textareaRef.current;
@@ -54,17 +81,20 @@ export default function BlogEditor({ initialData, onSave, onCancel, isLoading = 
     const end = textarea.selectionEnd;
     const selectedText = content.substring(start, end);
     const textToInsert = selectedText || placeholder;
-    
-    const newContent = 
-      content.substring(0, start) + 
-      before + textToInsert + after + 
+
+    const newContent =
+      content.substring(0, start) +
+      before +
+      textToInsert +
+      after +
       content.substring(end);
-    
+
     setContent(newContent);
-    
+
     // Set cursor position after the inserted text
     setTimeout(() => {
-      const newCursorPos = start + before.length + textToInsert.length + after.length;
+      const newCursorPos =
+        start + before.length + textToInsert.length + after.length;
       textarea.focus();
       textarea.setSelectionRange(newCursorPos, newCursorPos);
     }, 0);
@@ -113,18 +143,28 @@ export default function BlogEditor({ initialData, onSave, onCancel, isLoading = 
       .replace(/^# (.*$)/gm, '<h1 class="text-3xl font-bold mb-4">$1</h1>')
       .replace(/^## (.*$)/gm, '<h2 class="text-2xl font-semibold mb-3">$1</h2>')
       .replace(/^### (.*$)/gm, '<h3 class="text-xl font-medium mb-2">$1</h3>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/<u>(.*?)<\/u>/g, '<u>$1</u>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 underline">$1</a>')
-      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg my-4" />')
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.*?)\*/g, "<em>$1</em>")
+      .replace(/<u>(.*?)<\/u>/g, "<u>$1</u>")
+      .replace(
+        /!\[([^\]]*)\]\(([^)]+)\)/g,
+        '<img src="$2" alt="$1" class="w-full object-cover rounded-xl my-4" />'
+      )
+      .replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        '<a href="$2" class="text-blue-600 underline">$1</a>'
+      )
+
       .replace(/^- (.*$)/gm, '<ul class="list-disc ml-6 mb-4"><li>$1</li></ul>')
-      .replace(/^\d+\. (.*$)/gm, '<ol class="list-decimal ml-6 mb-4"><li>$1</li></ol>')
+      .replace(
+        /^\d+\. (.*$)/gm,
+        '<ol class="list-decimal ml-6 mb-4"><li>$1</li></ol>'
+      )
       .replace(/\n\n/g, '</p><p class="mb-4">')
       .replace(/^(.*)$/gm, '<p class="mb-4">$1</p>')
       .replace(/<\/p><p class="mb-4"><\/p>/g, '</p><p class="mb-4">')
-      .replace(/^<p class="mb-4"><h/g, '<h')
-      .replace(/h[1-3]><\/p>$/gm, (match) => match.replace(/<\/p>$/, ''));
+      .replace(/^<p class="mb-4"><h/g, "<h")
+      .replace(/h[1-3]><\/p>$/gm, (match) => match.replace(/<\/p>$/, ""));
   };
 
   const handleSave = () => {
@@ -132,8 +172,13 @@ export default function BlogEditor({ initialData, onSave, onCancel, isLoading = 
       title,
       content,
       excerpt,
-      featuredImage: featuredImage || undefined,
+      category
+      // featuredImage: featuredImage || undefined,
     });
+    setTitle('');
+    setContent('');
+    setExcerpt('');
+    setCategory('');
   };
 
   return (
@@ -153,7 +198,25 @@ export default function BlogEditor({ initialData, onSave, onCancel, isLoading = 
               className="text-lg"
             />
           </div>
-          
+          <label className="text-sm font-medium mb-2 block">Category</label>
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="w-full md:w-48">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Tips for Parents">Tips for Parents</SelectItem>
+              <SelectItem value="Tips For Nannies">Tips For Nannies</SelectItem>
+              <SelectItem value="Platform Tips">Platform Tips</SelectItem>
+              <SelectItem value="Platform Tips">Platform Tips</SelectItem>
+              <SelectItem value="Special Needs Care">
+                Special Needs Care
+              </SelectItem>
+              <SelectItem value="Do It Yourself">Do It Yourself</SelectItem>
+              <SelectItem value="Nanny Activities">Nanny Activities</SelectItem>
+              <SelectItem value="News">News</SelectItem>
+            </SelectContent>
+          </Select>
           <div>
             <label className="text-sm font-medium mb-2 block">Excerpt</label>
             <Textarea
@@ -164,20 +227,22 @@ export default function BlogEditor({ initialData, onSave, onCancel, isLoading = 
             />
           </div>
 
-          <div>
-            <label className="text-sm font-medium mb-2 block">Featured Image URL (Optional)</label>
+          {/* <div>
+            <label className="text-sm font-medium mb-2 block">
+              Featured Image URL (Optional)
+            </label>
             <Input
               value={featuredImage}
               onChange={(e) => setFeaturedImage(e.target.value)}
               placeholder="https://example.com/image.jpg"
             />
-          </div>
+          </div> */}
         </div>
 
         {/* Content Editor */}
         <div>
           <label className="text-sm font-medium mb-2 block">Content</label>
-          
+
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="write">Write</TabsTrigger>
@@ -308,8 +373,9 @@ export default function BlogEditor({ initialData, onSave, onCancel, isLoading = 
               />
 
               <div className="text-xs text-muted-foreground">
-                <strong>Formatting Guide:</strong> **bold**, *italic*, # Heading 1, ## Heading 2, ### Heading 3, 
-                - Bullet point, 1. Numbered list, [link text](url), ![image alt](image-url)
+                <strong>Formatting Guide:</strong> **bold**, *italic*, # Heading
+                1, ## Heading 2, ### Heading 3, - Bullet point, 1. Numbered
+                list, [link text](url), ![image alt](image-url)
               </div>
             </TabsContent>
 
@@ -320,19 +386,19 @@ export default function BlogEditor({ initialData, onSave, onCancel, isLoading = 
                     {title}
                   </h1>
                 )}
-                {featuredImage && (
-                  <Image 
-                    src={featuredImage} 
-                    alt="Featured" 
+                {/* {featuredImage && (
+                  <Image
+                    src={featuredImage}
+                    alt="Featured"
                     className="w-full max-h-96 object-cover rounded-lg mb-6"
                   />
-                )}
+                )} */}
                 {excerpt && (
                   <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 italic">
                     {excerpt}
                   </p>
                 )}
-                <div 
+                <div
                   className="prose prose-lg max-w-none dark:prose-invert"
                   dangerouslySetInnerHTML={{ __html: renderPreview() }}
                 />
@@ -346,7 +412,10 @@ export default function BlogEditor({ initialData, onSave, onCancel, isLoading = 
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isLoading || !title.trim() || !content.trim()}>
+          <Button
+            onClick={handleSave}
+            disabled={isLoading || !title.trim() || !content.trim()}
+          >
             {isLoading ? (
               "Saving..."
             ) : (

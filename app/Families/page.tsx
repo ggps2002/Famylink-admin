@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { apiRequest } from "@/lib/queryClient";
@@ -41,8 +41,11 @@ import {
   Phone,
   Star,
 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchFamiliesThunk } from "@/redux/slices/userDataSlice";
+import { RootState, AppDispatch } from "@/redux/store";
 
-interface User {
+interface Parents {
   id: number;
   username: string;
   email: string;
@@ -54,61 +57,48 @@ interface User {
   city?: string;
   state?: string;
   hourlyRate?: string;
-  isVerified: boolean;
+  bio?: string;
+  isVerifiedEmail: boolean;
+  isVerifiedID: boolean;
   isActive: boolean;
   createdAt: string;
+  avgRating: number;
+  totalReviews: number;
 }
 
 export default function Users() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
   const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
-
-  const { data: users, isLoading } = useQuery<User[]>({
-    queryKey: ["/api/users"],
-  });
-
-  const deleteUserMutation = useMutation({
-    mutationFn: (userId: number) =>
-      apiRequest(`/api/users/${userId}`, "DELETE"),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      toast.success("Success", {
-        description: "User deleted successfully",
-      });
-      setDeleteUserId(null);
-    },
-    onError: () => {
-      toast.error("Error", {
-        description: "Failed to delete user",
-      });
-    },
-  });
+  const { families, isLoading, paginationFamily } = useSelector(
+    (state: RootState) => state.userData
+  );
+  const dispatch = useDispatch<AppDispatch>();
+  useEffect(() => {
+    dispatch(fetchFamiliesThunk());
+  }, [dispatch]);
 
   const filteredUsers =
-    users?.filter((user) => {
+    families?.filter((user) => {
       const matchesSearch =
         user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesRole = roleFilter === "all" || user.role === roleFilter;
 
-      return matchesSearch && matchesRole;
+      return matchesSearch;
     }) || [];
 
   const handleDeleteUser = (userId: number) => {
     setDeleteUserId(userId);
   };
 
-  const confirmDelete = () => {
-    if (deleteUserId) {
-      deleteUserMutation.mutate(deleteUserId);
-    }
-  };
+  // const confirmDelete = () => {
+  //   if (deleteUserId) {
+  //     deleteUserMutation.mutate(deleteUserId);
+  //   }
+  // };
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -223,11 +213,30 @@ export default function Users() {
                           <Badge variant={getRoleBadgeVariant(user.role)}>
                             {user.role}
                           </Badge>
-                          {user.isVerified && (
-                            <Badge variant="outline" className="text-green-600">
-                              Verified
+                          <div className="flex items-start space-y-2 flex-wrap gap-2">
+                            <Badge
+                              variant={user.isActive ? "default" : "secondary"}
+                              className="text-xs"
+                            >
+                              {user.isActive ? "Active" : "Inactive"}
                             </Badge>
-                          )}
+                            {user.isVerifiedEmail && (
+                              <Badge
+                                variant="outline"
+                                className="text-green-600 text-xs"
+                              >
+                                Verified Email
+                              </Badge>
+                            )}
+                            {user.isVerifiedID && (
+                              <Badge
+                                variant="outline"
+                                className="text-green-600 text-xs"
+                              >
+                                Verified ID
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                           <div className="flex items-center">
@@ -293,7 +302,7 @@ export default function Users() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>
+            <AlertDialogAction onClick={() => console.log("delete")}>
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
