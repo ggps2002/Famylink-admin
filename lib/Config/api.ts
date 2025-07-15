@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: process.env.NODE_ENV === "production" ? process.env.BACKEND_API_URL : "http://localhost:3000",
+  baseURL: process.env.NEXT_PUBLIC_NODE_ENV === "production" ? process.env.NEXT_PUBLIC_BACKEND_API_URL : "http://localhost:3000",
 });
 
 // Add a request interceptor
