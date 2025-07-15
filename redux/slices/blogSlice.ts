@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "@/lib/Config/api";
 
 interface Blog {
-  id: number;
+  _id: number;
   title: string;
   content: string;
   excerpt: string;

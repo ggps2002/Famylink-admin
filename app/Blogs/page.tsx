@@ -44,7 +44,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 
 interface Blog {
-  id: number;
+  _id: number;
   title: string;
   content: string;
   excerpt: string;
@@ -438,7 +438,7 @@ export default function Blogs() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() =>
-                                  handleTogglePublish(blog.id, blog.isPublished)
+                                  handleTogglePublish(blog._id, blog.isPublished)
                                 }
                               >
                                 {blog.isPublished ? "Unpublish" : "Publish"}
@@ -453,7 +453,7 @@ export default function Blogs() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleDeleteBlog(blog.id)}
+                                onClick={() => handleDeleteBlog(blog._id)}
                                 className="text-destructive hover:text-destructive"
                               >
                                 <Trash2 className="w-4 h-4" />
