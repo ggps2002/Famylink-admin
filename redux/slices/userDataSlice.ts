@@ -10,6 +10,8 @@ interface TopUsers {
   hourlyRate?: string;
   avgRating: number;
   reviewCount: number;
+  city?: string;
+  activeJobs?: number;
 }
 
 interface Users {
@@ -73,7 +75,7 @@ const initialState: userData = {
 export const fetchTotalUsersPerTypeCountThunk = createAsyncThunk(
   "jobs/fetchTotalUsersPerTypeCountThunk",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } = getState();
+    const { auth } : any = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get("/userData/count/perType", {
@@ -95,7 +97,7 @@ export const fetchTotalUsersPerTypeCountThunk = createAsyncThunk(
 export const fetchTopUsersThunk = createAsyncThunk(
   "jobs/fetchTopUsersThunk",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } = getState();
+    const { auth } : any = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get("/userData/top-users", {
@@ -117,7 +119,7 @@ export const fetchTopUsersThunk = createAsyncThunk(
 export const fetchNanniesThunk = createAsyncThunk(
   "jobs/fetchNanniesThunk",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } = getState();
+    const { auth }: any  = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get(`/userData/nannies`, {
@@ -139,7 +141,7 @@ export const fetchNanniesThunk = createAsyncThunk(
 export const fetchFamiliesThunk = createAsyncThunk(
   "jobs/fetchFamiliesThunk",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } = getState();
+    const { auth }: any  = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get(`/userData/families`, {
@@ -148,7 +150,7 @@ export const fetchFamiliesThunk = createAsyncThunk(
           // ⚠️ Don't manually set Content-Type here, Axios will handle it
         },
       }); // 🛑 Adjust the path if needed
-      console.log("Families", response.data)
+      console.log("Families", response.data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -203,7 +205,7 @@ const userDataSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-            .addCase(fetchFamiliesThunk.pending, (state) => {
+      .addCase(fetchFamiliesThunk.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })

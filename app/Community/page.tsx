@@ -126,17 +126,14 @@ export default function CommunityManagement() {
     mutationFn: (id: number) => apiRequest(`/api/community-topics/${id}`, "DELETE"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/community-topics"] });
-      toast({
-        title: "Success",
+      toast( "Success",{
         description: "Topic deleted successfully",
       });
       setDeleteId(null);
     },
     onError: () => {
-      toast({
-        title: "Error",
+      toast("Error",{
         description: "Failed to delete topic",
-        variant: "destructive",
       });
     },
   });
@@ -146,8 +143,7 @@ export default function CommunityManagement() {
       apiRequest("/api/communities", "POST", { ...data, isActive: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/communities"] });
-      toast({
-        title: "Success",
+      toast( "Success",{
         description: "Community created successfully",
       });
       setShowCreateCommunity(false);
@@ -155,10 +151,8 @@ export default function CommunityManagement() {
       setNewCommunityDescription("");
     },
     onError: () => {
-      toast({
-        title: "Error",
+      toast( "Error",{
         description: "Failed to create community",
-        variant: "destructive",
       });
     },
   });
@@ -168,8 +162,7 @@ export default function CommunityManagement() {
       apiRequest("/api/community-topics", "POST", { ...data, createdBy: 1 }), // Default admin user
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/community-topics"] });
-      toast({
-        title: "Success",
+      toast("Success",{
         description: "Topic created successfully",
       });
       setShowCreateTopic(false);
@@ -178,10 +171,8 @@ export default function CommunityManagement() {
       setSelectedCommunityId(null);
     },
     onError: () => {
-      toast({
-        title: "Error",
+      toast("Error",{
         description: "Failed to create topic",
-        variant: "destructive",
       });
     },
   });

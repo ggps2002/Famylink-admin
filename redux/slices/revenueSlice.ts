@@ -20,7 +20,7 @@ const initialState: revenueData = {
 export const fetchThisMonthRevenue = createAsyncThunk(
   "revenue/fetchMonthlyRevenue",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } = getState();
+    const { auth }: any  = getState();
     const { accessToken } = auth;
     try {
       const res = await api.get("/revenue/monthly", {
@@ -41,7 +41,7 @@ export const fetchThisMonthRevenue = createAsyncThunk(
 export const fetchMonthlyRevenueThunk = createAsyncThunk(
   "revenue/fetchMonthly",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } = getState();
+    const { auth }: any  = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get("/revenue/monthly-breakdown", {

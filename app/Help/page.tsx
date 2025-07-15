@@ -87,7 +87,7 @@ export default function HelpCenter() {
       apiRequest(`/api/help-messages/${data.id}`, "PUT", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/help-messages"] });
-      toast( "Reply sent successfully",{
+      toast.success( "Reply sent successfully",{
         description: "The user has been notified of your response.",
       });
       setReplyDialogOpen(false);
@@ -95,10 +95,8 @@ export default function HelpCenter() {
       setSelectedMessage(null);
     },
     onError: () => {
-      toast.error({
-        title: "Error",
+      toast.error( "Error",{
         description: "Failed to send reply. Please try again.",
-        variant: "destructive",
       });
     },
   });
@@ -108,8 +106,7 @@ export default function HelpCenter() {
       apiRequest(`/api/help-messages/${data.id}`, "PUT", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/help-messages"] });
-      toast({
-        title: "Status updated",
+      toast.success("Status updated",{
         description: "Message status has been updated successfully.",
       });
     },

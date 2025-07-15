@@ -69,7 +69,15 @@ export default function BlogEditor({
   const [title, setTitle] = useState(initialData?.title || "");
   const [content, setContent] = useState(initialData?.content || "");
   const [excerpt, setExcerpt] = useState(initialData?.excerpt || "");
-  const [category, setCategory] = useState(initialData?.category || "");
+  const [category, setCategory] = useState<
+    | "Tips for Parents"
+    | "Tips For Nannies"
+    | "Platform Tips"
+    | "Special Needs Care"
+    | "Do It Yourself"
+    | "Nanny Activities"
+    | "News"
+  >(initialData?.category || "Platform Tips");
   // const [featuredImage, setFeaturedImage] = useState(
   //   initialData?.featuredImage || ""
   // );
@@ -185,7 +193,6 @@ export default function BlogEditor({
     setTitle("");
     setContent("");
     setExcerpt("");
-    setCategory("");
   };
 
   return (
@@ -206,7 +213,19 @@ export default function BlogEditor({
             />
           </div>
           <label className="text-sm font-medium mb-2 block">Category</label>
-          <Select value={category} onValueChange={setCategory}>
+          <Select
+            value={category}
+            onValueChange={(
+              value:
+                | "Tips for Parents"
+                | "Tips For Nannies"
+                | "Platform Tips"
+                | "Special Needs Care"
+                | "Do It Yourself"
+                | "Nanny Activities"
+                | "News"
+            ) => setCategory(value)}
+          >
             <SelectTrigger className="w-full md:w-48">
               <Filter className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Select a category" />

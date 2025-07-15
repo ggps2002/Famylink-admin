@@ -45,7 +45,7 @@ const initialState: JobState = {
 export const fetchTotalJobsCountThunk = createAsyncThunk(
   "jobs/fetchTotalJobsCount",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } = getState();
+    const { auth }: any  = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get("/postJob/count", {
@@ -66,7 +66,7 @@ export const fetchTotalJobsCountThunk = createAsyncThunk(
 export const fetchAllJobs = createAsyncThunk(
   "jobs/fetchAllJobs",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } = getState();
+    const { auth }: any  = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get("/postJob/all-jobs", {

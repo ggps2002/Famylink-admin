@@ -52,7 +52,7 @@ export const postBlogsThunk = createAsyncThunk(
     },
     { getState, rejectWithValue }
   ) => {
-    const { auth } = getState();
+    const { auth } : any = getState();
     const { accessToken } = auth;
     try {
       const response = await api.post("/blogs/create", blogData, {
@@ -74,7 +74,7 @@ export const postBlogsThunk = createAsyncThunk(
 export const fetchBlogsThunk = createAsyncThunk(
   "jobs/fetchBlogsThunk",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } = getState();
+    const { auth }: any  = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get("/blogs/get-blogs", {

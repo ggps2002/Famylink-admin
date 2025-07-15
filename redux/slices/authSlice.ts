@@ -35,7 +35,7 @@ export const loginThunk = createAsyncThunk<any, LoginPayload>(
         refreshTokenExpiry: data.refreshTokenExpiry,
         status,
       };
-    } catch (error) {
+    } catch (error: any) {
       return rejectWithValue(error.response.data);
     }
   }
@@ -47,7 +47,7 @@ export const userCheckThunk = createAsyncThunk(
     try {
       const { data, status } = await api.post("/auth/check-user", body);
       return { status };
-    } catch (error) {
+    } catch (error: any) {
       return rejectWithValue(error.response.data);
     }
   }
@@ -56,8 +56,8 @@ export const refreshTokenThunk = createAsyncThunk(
   "auth/refresh-token",
   async (_, { getState, rejectWithValue }) => {
     try {
-      const state = getState();
-      const { refreshToken } = state.auth; // Adjust according to your slice structure
+      const { auth } : any = getState();
+      const { refreshToken } = auth;
       const { data, status } = await api.post(`/auth/refreshToken`, {
         refreshToken,
       });
@@ -69,7 +69,7 @@ export const refreshTokenThunk = createAsyncThunk(
         refreshTokenExpiry: data.refreshTokenExpiry,
         status,
       };
-    } catch (error) {
+    } catch (error: any) {
       return rejectWithValue(error.response.data);
     }
   }
@@ -80,8 +80,8 @@ export const editUserThunk = createAsyncThunk(
   async (userData, { getState, rejectWithValue }) => {
     try {
       // Get accessToken from state if needed for authorization
-      const state = getState();
-      const { accessToken } = state.auth;
+      const { auth }: any  = getState();
+      const { accessToken } = auth;
 
       const config = {
         headers: {
@@ -94,7 +94,7 @@ export const editUserThunk = createAsyncThunk(
         user: data.user,
         status,
       };
-    } catch (error) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data || "Error editing user data");
     }
   }
@@ -105,8 +105,8 @@ export const sendOtpThunk = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       // Get accessToken from state if needed for authorization
-      const state = getState();
-      const { accessToken } = state.auth;
+      const { auth } : any = getState();
+      const { accessToken } = auth;
 
       const config = {
         headers: {
@@ -120,7 +120,7 @@ export const sendOtpThunk = createAsyncThunk(
         data,
         status,
       };
-    } catch (error) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data || "Error sending otp");
     }
   }
@@ -131,8 +131,8 @@ export const verifyOtpThunk = createAsyncThunk(
   async (oneTimePass, { getState, rejectWithValue }) => {
     try {
       // Get accessToken from state if needed for authorization
-      const state = getState();
-      const { accessToken } = state.auth;
+      const { auth } : any = getState();
+      const { accessToken } = auth;
 
       const config = {
         headers: {
@@ -150,7 +150,7 @@ export const verifyOtpThunk = createAsyncThunk(
         data,
         status,
       };
-    } catch (error) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data || "Error verify otp");
     }
   }
@@ -161,8 +161,8 @@ export const resendOtpThunk = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     try {
       // Get accessToken from state if needed for authorization
-      const state = getState();
-      const { accessToken } = state.auth;
+      const { auth } : any = getState();
+      const { accessToken } = auth;
 
       const config = {
         headers: {
@@ -176,7 +176,7 @@ export const resendOtpThunk = createAsyncThunk(
         data,
         status,
       };
-    } catch (error) {
+    } catch (error: any) {
       return rejectWithValue(error.response?.data || "Error resend otp");
     }
   }
