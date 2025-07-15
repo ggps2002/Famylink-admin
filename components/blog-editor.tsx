@@ -47,7 +47,14 @@ interface BlogEditorProps {
     title: string;
     content: string;
     excerpt: string;
-    featuredImage?: string;
+    category:
+      | "Tips for Parents"
+      | "Tips For Nannies"
+      | "Platform Tips"
+      | "Special Needs Care"
+      | "Do It Yourself"
+      | "Nanny Activities"
+      | "News";
   }) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -172,13 +179,13 @@ export default function BlogEditor({
       title,
       content,
       excerpt,
-      category
+      category,
       // featuredImage: featuredImage || undefined,
     });
-    setTitle('');
-    setContent('');
-    setExcerpt('');
-    setCategory('');
+    setTitle("");
+    setContent("");
+    setExcerpt("");
+    setCategory("");
   };
 
   return (

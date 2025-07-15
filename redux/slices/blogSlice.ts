@@ -9,14 +9,14 @@ interface Blog {
   slug: string;
   authorId: number;
   isPublished: boolean;
-   category:
-      | "Tips for Parents"
-      | "Tips For Nannies"
-      | "Platform Tips"
-      | "Special Needs Care"
-      | "Do It Yourself"
-      | "Nanny Activities"
-      | "News";
+  category:
+    | "Tips for Parents"
+    | "Tips For Nannies"
+    | "Platform Tips"
+    | "Special Needs Care"
+    | "Do It Yourself"
+    | "Nanny Activities"
+    | "News";
   publishedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -28,14 +28,14 @@ interface Blog {
 
 interface blogState {
   isLoading: boolean;
-  postMessage: string | null;
+  message: string | null;
   allBlogs: Blog[] | null;
   error: string | null;
 }
 
 const initialState: blogState = {
   allBlogs: null,
-  postMessage: null,
+  message: null,
   isLoading: false,
   error: null,
 };
@@ -70,6 +70,28 @@ export const postBlogsThunk = createAsyncThunk(
   }
 );
 
+// Thunk to fetch blogs
+export const fetchBlogsThunk = createAsyncThunk(
+  "jobs/fetchBlogsThunk",
+  async (_, { getState, rejectWithValue }) => {
+    const { auth } = getState();
+    const { accessToken } = auth;
+    try {
+      const response = await api.get("/blogs/get-blogs", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          // ⚠️ Don't manually set Content-Type here, Axios will handle it
+        },
+      }); // 🛑 Adjust the path if needed
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch job count"
+      );
+    }
+  }
+);
+
 const blogSlice = createSlice({
   name: "blogs",
   initialState,
@@ -79,16 +101,32 @@ const blogSlice = createSlice({
       .addCase(postBlogsThunk.pending, (state) => {
         state.isLoading = true;
         state.error = null;
-        state.postMessage = null;
+        state.message = null;
       })
       .addCase(postBlogsThunk.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.postMessage = action.payload.message;
+        state.message = action.payload.message;
       })
       .addCase(postBlogsThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
-        state.postMessage = null;
+        state.message = null;
+      })
+      .addCase(fetchBlogsThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(fetchBlogsThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.error = null;
+        state.message = action.payload.mssage;
+        state.allBlogs = action.payload.blogs;
+      })
+      .addCase(fetchBlogsThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        state.message = null;
       });
   },
 });

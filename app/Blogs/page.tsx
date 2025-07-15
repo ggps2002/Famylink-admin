@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import Sidebar from "@/components/dashboard/sidebar";
@@ -39,7 +39,7 @@ import {
   Trash2,
   FileText,
 } from "lucide-react";
-import { postBlogsThunk } from "@/redux/slices/blogSlice";
+import { fetchBlogsThunk, postBlogsThunk } from "@/redux/slices/blogSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 
@@ -77,7 +77,13 @@ export default function Blogs() {
   const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
   const isMobile = useIsMobile();
   const dispatch = useDispatch<AppDispatch>();
-  const { isLoading } = useSelector((state: RootState) => state.blogs);
+  const { allBlogs, isLoading } = useSelector(
+    (state: RootState) => state.blogs
+  );
+
+  useEffect(() => {
+    dispatch(fetchBlogsThunk());
+  }, [dispatch]);
 
   // const { data: blogs, isLoading } = useQuery<Blog[]>({
   //   queryKey: ["/api/blogs"],
@@ -150,10 +156,8 @@ export default function Blogs() {
   //   },
   // });
 
-  const blogs = [];
-
   const filteredBlogs =
-    blogs?.filter((blog) => {
+    allBlogs?.filter((blog) => {
       const matchesSearch =
         blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         blog.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -198,21 +202,22 @@ export default function Blogs() {
     title: string;
     content: string;
     excerpt: string;
-    category:   | "Tips for Parents"
-    | "Tips For Nannies"
-    | "Platform Tips"
-    | "Special Needs Care"
-    | "Do It Yourself"
-    | "Nanny Activities"
-    | "News";
+    category:
+      | "Tips for Parents"
+      | "Tips For Nannies"
+      | "Platform Tips"
+      | "Special Needs Care"
+      | "Do It Yourself"
+      | "Nanny Activities"
+      | "News";
   }) => {
     if (editingBlog) {
       // updateBlogMutation.mutate({ id: editingBlog.id, ...blogData });
     } else {
       await dispatch(postBlogsThunk(blogData));
       toast.success("Blog posted successfully!", {
-        description: "Now your blog is accessible in the Famylink resources."
-      })
+        description: "Now your blog is accessible in the Famylink resources.",
+      });
     }
   };
 
@@ -289,7 +294,7 @@ export default function Blogs() {
                           Total Posts
                         </p>
                         <p className="text-2xl font-bold">
-                          {blogs?.length || 0}
+                          {allBlogs?.length || 0}
                         </p>
                       </div>
                       <FileText className="w-8 h-8 text-blue-500" />
@@ -304,8 +309,8 @@ export default function Blogs() {
                           Published
                         </p>
                         <p className="text-2xl font-bold text-green-600">
-                          {blogs?.filter((blog) => blog.isPublished).length ||
-                            0}
+                          {allBlogs?.filter((blog) => blog.isPublished)
+                            .length || 0}
                         </p>
                       </div>
                       <Eye className="w-8 h-8 text-green-500" />
@@ -318,8 +323,8 @@ export default function Blogs() {
                       <div>
                         <p className="text-sm text-muted-foreground">Drafts</p>
                         <p className="text-2xl font-bold text-yellow-600">
-                          {blogs?.filter((blog) => !blog.isPublished).length ||
-                            0}
+                          {allBlogs?.filter((blog) => !blog.isPublished)
+                            .length || 0}
                         </p>
                       </div>
                       <Edit className="w-8 h-8 text-yellow-500" />
@@ -388,7 +393,7 @@ export default function Blogs() {
                     <div className="space-y-4">
                       {filteredBlogs.map((blog) => (
                         <div
-                          key={blog.id}
+                          key={blog._id}
                           className="p-4 border rounded-lg hover:bg-accent/50 transition-colors"
                         >
                           <div className="flex items-start justify-between mb-3">
