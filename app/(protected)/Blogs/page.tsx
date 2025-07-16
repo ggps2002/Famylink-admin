@@ -48,7 +48,6 @@ import {
 } from "@/redux/slices/blogSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
-import { withAuth } from "@/lib/authWrapper";
 
 interface Blog {
   _id: number;
@@ -75,7 +74,7 @@ interface Blog {
   };
 }
 
-function Blogs() {
+export default function Blogs() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -526,5 +525,3 @@ function Blogs() {
     </div>
   );
 }
-
-export default withAuth(Blogs);

@@ -40,7 +40,6 @@ import {
   Plus,
   Filter,
 } from "lucide-react";
-import { withAuth } from "@/lib/authWrapper";
 
 interface HelpMessage {
   id: number;
@@ -68,7 +67,7 @@ const priorityColors = {
   urgent: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
 };
 
-function HelpCenter() {
+export default function HelpCenter() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -329,5 +328,3 @@ function HelpCenter() {
     </div>
   );
 }
-
-export default withAuth(HelpCenter)

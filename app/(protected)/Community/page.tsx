@@ -52,7 +52,6 @@ import {
   Trash2,
   Hash,
 } from "lucide-react";
-import { withAuth } from "@/lib/authWrapper";
 
 interface Community {
   id: number;
@@ -84,7 +83,7 @@ interface CommunityTopic {
   };
 }
 
-function CommunityManagement() {
+export default function CommunityManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -206,10 +205,7 @@ function CommunityManagement() {
 
   const handleCreateCommunity = () => {
     if (newCommunityName.trim() && newCommunityDescription.trim()) {
-      createCommunityMutation.mutate({
-        name: newCommunityName.trim(),
-        description: newCommunityDescription.trim(),
-      });
+      
     }
   };
 
@@ -438,6 +434,7 @@ function CommunityManagement() {
             <TabsList>
               <TabsTrigger value="communities">Communities</TabsTrigger>
               <TabsTrigger value="topics">Topics</TabsTrigger>
+               <TabsTrigger value="posts">Posts</TabsTrigger>
             </TabsList>
 
             {/* Communities Tab */}
@@ -445,10 +442,6 @@ function CommunityManagement() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Communities ({filteredCommunities.length})</CardTitle>
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Community
-                  </Button>
                 </CardHeader>
                 <CardContent>
                   {communitiesLoading ? (
@@ -520,10 +513,6 @@ function CommunityManagement() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Topics ({filteredTopics.length})</CardTitle>
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Topic
-                  </Button>
                 </CardHeader>
                 <CardContent>
                   {topicsLoading ? (
@@ -546,6 +535,92 @@ function CommunityManagement() {
                   ) : filteredTopics.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       No topics found
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredTopics.map((topic) => (
+                        <div key={topic.id} className="p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-foreground mb-1">
+                                {topic.title}
+                              </h3>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                {topic.description}
+                              </p>
+                              <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                                {topic.community && (
+                                  <div className="flex items-center">
+                                    <Hash className="w-3 h-3 mr-1" />
+                                    {topic.community.name}
+                                  </div>
+                                )}
+                                {topic.createdBy && (
+                                  <div className="flex items-center">
+                                    <User className="w-3 h-3 mr-1" />
+                                    {topic.createdBy.firstName} {topic.createdBy.lastName}
+                                  </div>
+                                )}
+                                <span>{topic._count?.posts || 0} posts</span>
+                                <span>Created {new Date(topic.createdAt).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Button variant="outline" size="sm">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button variant="outline" size="sm">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleDelete(topic.id, 'topic')}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Posts */}
+             <TabsContent value="posts">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Posts ({filteredTopics.length})</CardTitle>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Post
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {topicsLoading ? (
+                    <div className="space-y-4">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="p-4 border rounded-lg">
+                          <div className="flex items-start justify-between mb-2">
+                            <Skeleton className="h-5 w-48" />
+                            <div className="flex space-x-2">
+                              <Skeleton className="h-8 w-8" />
+                              <Skeleton className="h-8 w-8" />
+                              <Skeleton className="h-8 w-8" />
+                            </div>
+                          </div>
+                          <Skeleton className="h-4 w-full mb-2" />
+                          <Skeleton className="h-4 w-32" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : filteredTopics.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No posts found
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -624,5 +699,3 @@ function CommunityManagement() {
     </div>
   );
 }
-
-export default withAuth(CommunityManagement)

@@ -44,7 +44,6 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFamiliesThunk } from "@/redux/slices/userDataSlice";
 import { RootState, AppDispatch } from "@/redux/store";
-import { withAuth } from "@/lib/authWrapper";
 
 interface Parents {
   id: number;
@@ -67,7 +66,7 @@ interface Parents {
   totalReviews: number;
 }
 
-function Users() {
+export default function Users() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
@@ -313,4 +312,3 @@ function Users() {
   );
 }
 
-export default withAuth(Users)

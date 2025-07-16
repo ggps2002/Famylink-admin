@@ -23,7 +23,6 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchNanniesThunk } from "@/redux/slices/userDataSlice";
 import { RootState, AppDispatch } from "@/redux/store";
-import { withAuth } from "@/lib/authWrapper";
 
 interface Nanny {
   id: number;
@@ -46,7 +45,7 @@ interface Nanny {
   totalReviews: number;
 }
 
-function Nannies() {
+export default function Nannies() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
@@ -291,4 +290,3 @@ function Nannies() {
   );
 }
 
-export default withAuth(Nannies)

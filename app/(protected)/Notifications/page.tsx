@@ -29,7 +29,6 @@ import {
   User,
   Filter,
 } from "lucide-react";
-import { withAuth } from "@/lib/authWrapper";
 
 interface Notification {
   id: number;
@@ -59,7 +58,7 @@ const typeIcons = {
   error: AlertCircle,
 };
 
-function Notifications() {
+export default function Notifications() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -342,5 +341,3 @@ function Notifications() {
     </div>
   );
 }
-
-export default withAuth(Notifications)
