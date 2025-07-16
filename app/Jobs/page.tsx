@@ -43,6 +43,7 @@ import {
 import { fetchAllJobs } from "@/redux/slices/jobSlice";
 import { RootState, AppDispatch } from "@/redux/store";
 import { useSelector, useDispatch } from "react-redux";
+import { withAuth } from "@/lib/authWrapper";
 
 interface JobListing {
   id: number;
@@ -64,7 +65,7 @@ interface JobListing {
   };
 }
 
-export default function Jobs() {
+function Jobs() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -316,3 +317,6 @@ export default function Jobs() {
     </div>
   );
 }
+
+
+export default withAuth(Jobs)

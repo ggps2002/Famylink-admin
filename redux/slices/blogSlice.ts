@@ -18,6 +18,7 @@ interface Blog {
     | "Nanny Activities"
     | "News";
   publishedAt?: string;
+  isDraft: boolean;
   createdAt: string;
   updatedAt: string;
   author?: {
@@ -42,17 +43,18 @@ const initialState: blogState = {
 
 // Thunk to post blogs
 export const postBlogsThunk = createAsyncThunk(
-  "jobs/postBlogsThunk",
+  "blogs/postBlogsThunk",
   async (
     blogData: {
       title: string;
       content: string;
       excerpt: string;
+      isDraft: boolean;
       featuredImage?: string;
     },
     { getState, rejectWithValue }
   ) => {
-    const { auth } : any = getState();
+    const { auth }: any = getState();
     const { accessToken } = auth;
     try {
       const response = await api.post("/blogs/create", blogData, {
@@ -70,11 +72,88 @@ export const postBlogsThunk = createAsyncThunk(
   }
 );
 
+export const deleteBlogThunk = createAsyncThunk(
+  "blogs/deleteBlogThunk",
+  async (blogId: number, { getState, rejectWithValue }) => {
+    const { auth }: any = getState();
+    const { accessToken } = auth;
+    try {
+      const response = await api.delete(`/blogs/${blogId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          // ⚠️ Don't manually set Content-Type here, Axios will handle it
+        },
+      }); // 🛑 Adjust the path if needed
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to publish blog"
+      );
+    }
+  }
+);
+
+export const togglePublishBlogThunk = createAsyncThunk(
+  "blogs/togglePublishBlogThunk",
+  async (blogId: number, { getState, rejectWithValue }) => {
+    const { auth }: any = getState();
+    const { accessToken } = auth;
+    try {
+      const response = await api.patch(
+        `/blogs/publish/${blogId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            // ⚠️ Don't manually set Content-Type here, Axios will handle it
+          },
+        }
+      ); // 🛑 Adjust the path if needed
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to publish blog"
+      );
+    }
+  }
+);
+
+export const editBlogThunk = createAsyncThunk(
+  "blogs/editBlogThunk",
+  async (
+    blog: {
+      _id: number;
+      title: string;
+      content: string;
+      excerpt: string;
+      isDraft: boolean;
+      featuredImage?: string;
+    },
+    { getState, rejectWithValue }
+  ) => {
+    const { auth }: any = getState();
+    const { accessToken } = auth;
+    try {
+      const response = await api.patch(`/blogs/edit`, blog, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          // ⚠️ Don't manually set Content-Type here, Axios will handle it
+        },
+      }); // 🛑 Adjust the path if needed
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to edit blog"
+      );
+    }
+  }
+);
+
 // Thunk to fetch blogs
 export const fetchBlogsThunk = createAsyncThunk(
-  "jobs/fetchBlogsThunk",
+  "blogs/fetchBlogsThunk",
   async (_, { getState, rejectWithValue }) => {
-    const { auth }: any  = getState();
+    const { auth }: any = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get("/blogs/get-blogs", {
@@ -120,10 +199,75 @@ const blogSlice = createSlice({
       .addCase(fetchBlogsThunk.fulfilled, (state, action) => {
         state.isLoading = false;
         state.error = null;
-        state.message = action.payload.mssage;
+        // state.message = action.payload.message;
         state.allBlogs = action.payload.blogs;
       })
       .addCase(fetchBlogsThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        state.message = null;
+      })
+      .addCase(togglePublishBlogThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(togglePublishBlogThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.error = null;
+        state.message = action.payload.message;
+        const updatedBlog: Blog = action.payload.blog;
+        const index = state.allBlogs?.findIndex(
+          (b) => b._id === updatedBlog._id
+        );
+        if (index !== undefined && index !== -1 && state.allBlogs) {
+          state.allBlogs[index] = updatedBlog;
+        }
+      })
+      .addCase(togglePublishBlogThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        state.message = null;
+      })
+      .addCase(editBlogThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(editBlogThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.error = null;
+        state.message = action.payload.message;
+        const updatedBlog: Blog = action.payload.blog;
+        const index = state.allBlogs?.findIndex(
+          (b) => b._id === updatedBlog._id
+        );
+        if (index !== undefined && index !== -1 && state.allBlogs) {
+          state.allBlogs[index] = updatedBlog;
+        }
+      })
+      .addCase(editBlogThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+        state.message = null;
+      })
+      .addCase(deleteBlogThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(deleteBlogThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.error = null;
+        state.message = action.payload.message;
+        const deletedBlog: Blog = action.payload.blog;
+        if (deletedBlog && state.allBlogs) {
+          state.allBlogs = state.allBlogs.filter(
+            b => b._id !== deletedBlog._id
+          );
+        }
+      })
+      .addCase(deleteBlogThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
         state.message = null;

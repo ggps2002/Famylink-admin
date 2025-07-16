@@ -39,9 +39,16 @@ import {
   Trash2,
   FileText,
 } from "lucide-react";
-import { fetchBlogsThunk, postBlogsThunk } from "@/redux/slices/blogSlice";
+import {
+  deleteBlogThunk,
+  editBlogThunk,
+  fetchBlogsThunk,
+  postBlogsThunk,
+  togglePublishBlogThunk,
+} from "@/redux/slices/blogSlice";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
+import { withAuth } from "@/lib/authWrapper";
 
 interface Blog {
   _id: number;
@@ -68,7 +75,7 @@ interface Blog {
   };
 }
 
-export default function Blogs() {
+function Blogs() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -77,7 +84,7 @@ export default function Blogs() {
   const [editingBlog, setEditingBlog] = useState<Blog | null>(null);
   const isMobile = useIsMobile();
   const dispatch = useDispatch<AppDispatch>();
-  const { allBlogs, isLoading } = useSelector(
+  const { allBlogs, isLoading, message } = useSelector(
     (state: RootState) => state.blogs
   );
 
@@ -168,8 +175,8 @@ export default function Blogs() {
 
       const matchesStatus =
         statusFilter === "all" ||
-        (statusFilter === "published" && blog.isPublished) ||
-        (statusFilter === "draft" && !blog.isPublished);
+        (statusFilter === "published" && !blog.isDraft) ||
+        (statusFilter === "draft" && blog.isDraft);
 
       return matchesSearch && matchesStatus;
     }) || [];
@@ -178,14 +185,34 @@ export default function Blogs() {
     setDeleteBlogId(blogId);
   };
 
-  const confirmDelete = () => {
-    if (deleteBlogId) {
-      // deleteBlogMutation.mutate(deleteBlogId);
+  const confirmDelete = async () => {
+    try {
+      if (deleteBlogId) {
+        await dispatch(deleteBlogThunk(deleteBlogId));
+        toast.success("Blog is deleted successfully", {
+          description: message
+        });
+      }
+    } catch (error: any) {
+      toast.error("Error occured while deleting the blog", {
+        description: error,
+      });
     }
   };
 
-  const handleTogglePublish = (blogId: number, currentStatus: boolean) => {
+  const handleTogglePublish = async (blogId: number, isDraft: boolean) => {
     // togglePublishMutation.mutate({ blogId, isPublished: !currentStatus });
+    await dispatch(togglePublishBlogThunk(blogId));
+
+    if (isDraft) {
+      toast.success("Blog published", {
+        description: message,
+      });
+    } else {
+      toast.success("Blog Unpublished", {
+        description: message,
+      });
+    }
   };
 
   const handleCreateNew = () => {
@@ -210,13 +237,18 @@ export default function Blogs() {
       | "Do It Yourself"
       | "Nanny Activities"
       | "News";
+    isDraft: boolean;
   }) => {
     if (editingBlog) {
-      // updateBlogMutation.mutate({ id: editingBlog.id, ...blogData });
+      await dispatch(editBlogThunk({ _id: editingBlog._id, ...blogData }));
+      toast.success("Blog edited successfully!", {
+        description: message,
+      });
     } else {
       await dispatch(postBlogsThunk(blogData));
-      toast.success("Blog posted successfully!", {
-        description: "Now your blog is accessible in the Famylink resources.",
+      toast.success("Blog created successfully!", {
+        description:
+          "Now your blog is ready to publish. Click the publish button to publish it.",
       });
     }
   };
@@ -309,8 +341,8 @@ export default function Blogs() {
                           Published
                         </p>
                         <p className="text-2xl font-bold text-green-600">
-                          {allBlogs?.filter((blog) => blog.isPublished)
-                            .length || 0}
+                          {allBlogs?.filter((blog) => !blog.isDraft).length ||
+                            0}
                         </p>
                       </div>
                       <Eye className="w-8 h-8 text-green-500" />
@@ -323,8 +355,7 @@ export default function Blogs() {
                       <div>
                         <p className="text-sm text-muted-foreground">Drafts</p>
                         <p className="text-2xl font-bold text-yellow-600">
-                          {allBlogs?.filter((blog) => !blog.isPublished)
-                            .length || 0}
+                          {allBlogs?.filter((blog) => blog.isDraft).length || 0}
                         </p>
                       </div>
                       <Edit className="w-8 h-8 text-yellow-500" />
@@ -404,10 +435,10 @@ export default function Blogs() {
                                 </h3>
                                 <Badge
                                   variant={
-                                    blog.isPublished ? "default" : "secondary"
+                                    blog.isDraft ? "secondary" : "default"
                                   }
                                 >
-                                  {blog.isPublished ? "Published" : "Draft"}
+                                  {blog.isDraft ? "Draft" : "Published"}
                                 </Badge>
                               </div>
                               <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
@@ -420,7 +451,7 @@ export default function Blogs() {
                                 )}
                                 <div className="flex items-center">
                                   <Calendar className="w-4 h-4 mr-1" />
-                                  {blog.isPublished && blog.publishedAt
+                                  {blog.isDraft && blog.publishedAt
                                     ? new Date(
                                         blog.publishedAt
                                       ).toLocaleDateString()
@@ -438,10 +469,10 @@ export default function Blogs() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() =>
-                                  handleTogglePublish(blog._id, blog.isPublished)
+                                  handleTogglePublish(blog._id, blog.isDraft)
                                 }
                               >
-                                {blog.isPublished ? "Unpublish" : "Publish"}
+                                {blog.isDraft ? "Publish" : "Unpublish"}
                               </Button>
                               <Button
                                 variant="outline"
@@ -495,3 +526,5 @@ export default function Blogs() {
     </div>
   );
 }
+
+export default withAuth(Blogs);

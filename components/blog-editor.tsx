@@ -47,6 +47,7 @@ interface BlogEditorProps {
     title: string;
     content: string;
     excerpt: string;
+    isDraft: boolean;
     category:
       | "Tips for Parents"
       | "Tips For Nannies"
@@ -188,11 +189,9 @@ export default function BlogEditor({
       content,
       excerpt,
       category,
+      isDraft : true
       // featuredImage: featuredImage || undefined,
     });
-    setTitle("");
-    setContent("");
-    setExcerpt("");
   };
 
   return (

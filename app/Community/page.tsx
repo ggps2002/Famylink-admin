@@ -52,6 +52,7 @@ import {
   Trash2,
   Hash,
 } from "lucide-react";
+import { withAuth } from "@/lib/authWrapper";
 
 interface Community {
   id: number;
@@ -83,7 +84,7 @@ interface CommunityTopic {
   };
 }
 
-export default function CommunityManagement() {
+function CommunityManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -623,3 +624,5 @@ export default function CommunityManagement() {
     </div>
   );
 }
+
+export default withAuth(CommunityManagement)
