@@ -66,7 +66,7 @@ export const postBlogsThunk = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch job count"
+        error.response?.data?.message || "Failed to create blog"
       );
     }
   }

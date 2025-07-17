@@ -15,13 +15,15 @@ import jobReducer from "../slices/jobSlice";
 import userDataReducer from "../slices/userDataSlice";
 import revenueReducer from "../slices/revenueSlice";
 import blogReducer from '../slices/blogSlice'
+import communityReducer from '../slices/communitySlice'
 
 const rootReducer = combineReducers({
   auth: authReducer,
   jobs: jobReducer,
   userData: userDataReducer,
   revenue: revenueReducer,
-  blogs: blogReducer
+  blogs: blogReducer,
+  community : communityReducer
 });
 
 const persistConfig = {
