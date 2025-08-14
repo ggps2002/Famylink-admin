@@ -117,7 +117,7 @@ const pathname = usePathname();
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-lg">F</span>
           </div>
-          <span className="text-xl font-bold text-foreground">FAMYLINK</span>
+          <span className="text-xl font-bold text-foreground">Famlink</span>
         </div>
       </div>
 

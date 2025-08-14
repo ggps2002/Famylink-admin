@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
@@ -58,10 +58,16 @@ import {
   Trash2,
   Hash,
   Filter,
+  ImageIcon,
+  X,
+  // Sheet,
 } from "lucide-react";
 import {
   createCommunity,
+  createPostThunk,
   createTopic,
+  deleteComment,
+  deletePostByIdThunk,
   fetchAllPosts,
 } from "@/redux/slices/communitySlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -76,6 +82,18 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Label } from "@/components/ui/label";
+import { api } from "@/lib/Config/api";
+import {
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  Sheet,
+} from "@/components/ui/sheet";
+import { RenderCommentsWithLines } from "@/components/RenderCommentReplyThread";
+import { Topic } from "@/types/community";
 
 interface Community {
   id: number;
@@ -110,10 +128,11 @@ interface CommunityTopic {
 export default function CommunityManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [deleteType, setDeleteType] = useState<"community" | "topic">(
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteType, setDeleteType] = useState<"community" | "topic" | "post">(
     "community"
   );
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [showCreateCommunity, setShowCreateCommunity] = useState(false);
   const [showCreateTopic, setShowCreateTopic] = useState(false);
   const [newCommunityName, setNewCommunityName] = useState("");
@@ -123,7 +142,9 @@ export default function CommunityManagement() {
   const [selectedCommunityId, setSelectedCommunityId] = useState<number | null>(
     null
   );
+  const [postCreators, setPostCreators] = useState({});
   const [selectedCom, setSelectedCom] = useState("");
+  const [newPostContent, setNewPostContent] = useState("");
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
@@ -131,6 +152,7 @@ export default function CommunityManagement() {
     community: "",
     topic: "",
   });
+  const [showCreatePost, setShowCreatePost] = useState(false);
   const limit = 5;
   const {
     posts,
@@ -179,39 +201,66 @@ export default function CommunityManagement() {
     },
   });
 
-const filteredPosts =
-  posts?.filter((post) => {
-    const matchesSearch =
-      post.topicName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.communityName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.post?.description
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase());
+  const filteredPosts =
+    posts?.filter((post) => {
+      const matchesSearch =
+        post.topicName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.communityName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.post?.description
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
-    const matchesCommunity =
-      !postsFilter.community || post.communityName === postsFilter.community;
+      const matchesCommunity =
+        !postsFilter.community || post.communityName === postsFilter.community;
 
-    const matchesTopic =
-      !postsFilter.topic || post.topicName === postsFilter.topic;
+      const matchesTopic =
+        !postsFilter.topic || post.topicName === postsFilter.topic;
 
-    return matchesSearch && matchesCommunity && matchesTopic;
-  }) || [];
+      return matchesSearch && matchesCommunity && matchesTopic;
+    }) || [];
 
-
-  const handleDelete = (id: number, type: "community" | "topic") => {
+  const handleDelete = async (id: string) => {
     setDeleteId(id);
-    setDeleteType(type);
+    setDeleteType("post");
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteId) {
-      if (deleteType === "community") {
-        deleteCommunityMutation.mutate(deleteId);
-      } else {
-        deleteTopicMutation.mutate(deleteId);
+      try {
+        await dispatch(deletePostByIdThunk({ postId: deleteId }));
+        //  filteredPosts.filter((post) => post.post._id === id)
+        // setFilteredPosts((prev) =>  prev.filter((p) => p.post._id !== id ))
+        // setPosts((prev) => prev.filter((p) => p._id !== deletePostId));
+        // setAdminPosts((prev) => prev.filter((p) => p._id !== deletePostId));
+        // setIsDeleteDialogOpen(false);
+        // setDeletePostId(null);
+        toast.success("Post deleted successfully!!", {
+          // description: message,
+        });
+      } catch (error: any) {
+        console.error("Error deleting post:", error);
+        toast.error("Error while deleting the post");
       }
     }
   };
+
+  // const handleDeletePost = async () => {
+  //   if (!deletePostId) return;
+
+  //   try {
+  //     setIsDeletingPost(true);
+  //     await api.delete(`/community/${deletePostId}`);
+
+  //     setPosts((prev) => prev.filter((p) => p._id !== deletePostId));
+  //     setAdminPosts((prev) => prev.filter((p) => p._id !== deletePostId));
+  //     setIsDeleteDialogOpen(false);
+  //     setDeletePostId(null);
+  //   } catch (error) {
+  //     console.error("Error deleting post:", error);
+  //   } finally {
+  //     setIsDeletingPost(false);
+  //   }
+  // };
 
   const handleCreateCommunity = async () => {
     if (newCommunityName.trim() && newCommunityDescription.trim()) {
@@ -234,6 +283,33 @@ const filteredPosts =
     }
   };
 
+  const handleCreatePost = async () => {
+    if (newPostContent.trim() || mediaFiles.length > 0) {
+      try {
+        const topicId = topics?.filter((topic) => topic.name === "Admin")[0].id;
+        if (topicId)
+          await dispatch(
+            createPostThunk({
+              topicId: topicId,
+              description: newPostContent,
+              // anonymous: false,
+              mediaFiles,
+            })
+          );
+        setNewPostContent("");
+        setMediaFiles([]);
+        setShowCreatePost(false);
+        toast.success("Created post successfully!!", {
+          description: message,
+        });
+      } catch (error: any) {
+        toast.error("Error occured while creating post", {
+          description: error,
+        });
+      }
+    }
+  };
+
   const handleCreateTopic = async () => {
     if (
       newTopicTitle.trim() &&
@@ -242,7 +318,7 @@ const filteredPosts =
     ) {
       try {
         const selected = communities?.find((c) => c.name === selectedCom);
-        console.log(selected)
+        console.log(selected);
         if (selected) {
           await dispatch(
             createTopic({
@@ -537,7 +613,10 @@ const filteredPosts =
                   </SelectTrigger>
                   <SelectContent>
                     {topics?.map((topic, index) => (
-                      <SelectItem key={topic.id + `${index}`} value={topic.name}>
+                      <SelectItem
+                        key={topic.id + `${index}`}
+                        value={topic.name}
+                      >
                         {topic.name}
                       </SelectItem>
                     ))}
@@ -551,10 +630,153 @@ const filteredPosts =
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               {/* <CardTitle>Posts ({filteredTopics.length})</CardTitle> */}
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                New Post
-              </Button>
+              <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Post
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Post</DialogTitle>
+                    <DialogDescription>
+                      Add a new admin post to the community
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    {/* <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Topic
+                      </label>
+                      <Select
+                        value={selectedCom}
+                        onValueChange={setSelectedCom}
+                      >
+                        <SelectTrigger className="w-full md:w-48">
+                          <SelectValue placeholder="Select a community" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {communities?.map((community) => (
+                            <SelectItem
+                              key={community.id}
+                              value={community.name}
+                            >
+                              {community.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div> */}
+                    {/* <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Topic Title
+                      </label>
+                      <Input
+                        value={newTopicTitle}
+                        onChange={(e) => setNewTopicTitle(e.target.value)}
+                        placeholder="Enter topic title..."
+                      />
+                    </div> */}
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">
+                        Post Content
+                      </Label>
+                      <Textarea
+                        value={newPostContent}
+                        onChange={(e) => setNewPostContent(e.target.value)}
+                        placeholder="Write your post..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <Input
+                        id="modal-media-upload"
+                        type="file"
+                        accept="image/*,video/*"
+                        multiple
+                        onChange={(e) =>
+                          setMediaFiles((prev) =>
+                            e.target.files
+                              ? [...prev, ...Array.from(e.target.files)]
+                              : []
+                          )
+                        }
+                        className="hidden"
+                      />
+                      <Label
+                        htmlFor="modal-media-upload"
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 cursor-pointer py-2 px-4 border border-blue-200 rounded-lg hover:bg-blue-50"
+                      >
+                        <ImageIcon className="w-5 h-5" />
+                        <span className="text-sm font-medium">
+                          Add Photos/Videos
+                        </span>
+                      </Label>
+                    </div>
+                  </div>
+                  {mediaFiles.length > 0 && (
+                    <div className="grid grid-cols-2 gap-2 mt-3 max-h-[300px] overflow-y-auto">
+                      {mediaFiles.slice(0, 4).map((file, idx) => (
+                        <div
+                          key={idx}
+                          className="relative aspect-square rounded-lg overflow-hidden"
+                        >
+                          {/* Remove button */}
+                          <div
+                            onClick={() =>
+                              setMediaFiles((prev) =>
+                                prev.filter((_, i) => i !== idx)
+                              )
+                            }
+                            className="absolute top-1 right-1 z-30 cursor-pointer w-fit p-1 rounded-full bg-gray-300"
+                          >
+                            <X className="text-[#151515] w-4 h-4" />
+                          </div>
+                          {file.type.startsWith("image") ? (
+                            <Image
+                              src={URL.createObjectURL(file)}
+                              alt="preview"
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <video
+                              src={URL.createObjectURL(file)}
+                              className="w-full h-full object-cover"
+                              autoPlay
+                              muted
+                              loop
+                              playsInline
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setNewPostContent("");
+                        setMediaFiles([]);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleCreatePost}
+                      disabled={
+                        (!newPostContent.trim() && !mediaFiles.length) ||
+                        isLoading
+                      }
+                    >
+                      {isLoading ? "Creating..." : "Create Post"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -593,7 +815,7 @@ const filteredPosts =
                           <p className="text-sm text-foreground mb-2">
                             {post.post.description}
                           </p>
-                          <div className="flex flex-wrap my-4">
+                          <div className="flex flex-wrap my-4 max-w-full">
                             {post.post.media?.map((media) => (
                               <Image
                                 key={media._id}
@@ -637,16 +859,35 @@ const filteredPosts =
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
+                          <Sheet>
+                            <SheetTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </SheetTrigger>
+                            <SheetContent className="flex flex-col max-h-screen">
+                              <SheetHeader className="flex-shrink-0 border-b pb-4">
+                                <SheetTitle>Post Comments</SheetTitle>
+                                <SheetDescription>
+                                  View and manage comments for this post.
+                                </SheetDescription>
+                              </SheetHeader>
+                              {/* Scrollable content area with custom scrollbar */}
+                              <div className="flex-1 overflow-y-auto my-4 pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                <RenderCommentsWithLines
+                                  comments={post.post.comments}
+                                  activePostId={post.post._id}
+                                />
+                              </div>
+                            </SheetContent>
+                          </Sheet>
                           <Button variant="outline" size="sm">
                             <Edit className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            // onClick={() => handleDelete(post.post._id)}
+                            onClick={() => handleDelete(post.post._id)}
                             className="text-destructive hover:text-destructive"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -712,7 +953,12 @@ const filteredPosts =
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Delete {deleteType === "community" ? "Community" : "Topic"}
+              Delete{" "}
+              {deleteType === "community"
+                ? "Community"
+                : deleteType === "topic"
+                ? "Topic"
+                : "Post"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this {deleteType}? This action

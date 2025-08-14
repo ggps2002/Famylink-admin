@@ -34,6 +34,7 @@ interface BlogEditorProps {
     title: string;
     content: string;
     excerpt: string;
+    featuredImage: string,
     category:
       | "Tips for Parents"
       | "Tips For Nannies"
@@ -48,6 +49,7 @@ interface BlogEditorProps {
     content: string;
     excerpt: string;
     isDraft: boolean;
+    featuredImage: string,
     category:
       | "Tips for Parents"
       | "Tips For Nannies"
@@ -70,6 +72,7 @@ export default function BlogEditor({
   const [title, setTitle] = useState(initialData?.title || "");
   const [content, setContent] = useState(initialData?.content || "");
   const [excerpt, setExcerpt] = useState(initialData?.excerpt || "");
+  const [featuredImage, setFeaturedImage] = useState(initialData?.featuredImage || "")
   const [category, setCategory] = useState<
     | "Tips for Parents"
     | "Tips For Nannies"
@@ -189,7 +192,8 @@ export default function BlogEditor({
       content,
       excerpt,
       category,
-      isDraft : true
+      featuredImage,
+      isDraft: true,
       // featuredImage: featuredImage || undefined,
     });
   };
@@ -233,7 +237,6 @@ export default function BlogEditor({
               <SelectItem value="Tips for Parents">Tips for Parents</SelectItem>
               <SelectItem value="Tips For Nannies">Tips For Nannies</SelectItem>
               <SelectItem value="Platform Tips">Platform Tips</SelectItem>
-              <SelectItem value="Platform Tips">Platform Tips</SelectItem>
               <SelectItem value="Special Needs Care">
                 Special Needs Care
               </SelectItem>
@@ -252,7 +255,7 @@ export default function BlogEditor({
             />
           </div>
 
-          {/* <div>
+          <div>
             <label className="text-sm font-medium mb-2 block">
               Featured Image URL (Optional)
             </label>
@@ -261,7 +264,7 @@ export default function BlogEditor({
               onChange={(e) => setFeaturedImage(e.target.value)}
               placeholder="https://example.com/image.jpg"
             />
-          </div> */}
+          </div> 
         </div>
 
         {/* Content Editor */}

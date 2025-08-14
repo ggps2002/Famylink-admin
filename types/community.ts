@@ -34,6 +34,7 @@ export interface Comment {
   replies: NestedReply[];
   createdAt: string;
   updatedAt: string;
+  isOriginalFromReply?: boolean
 }
 
 // Post with comments

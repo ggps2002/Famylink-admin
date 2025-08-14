@@ -184,9 +184,9 @@ export default function USAMap({}: USAMapProps) {
             <div
               className="absolute z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-3 shadow-lg pointer-events-none"
               style={{
-                left: mousePosition.x - 150,
-                top: mousePosition.y - 100,
-                transform: 'translate(-50%, -100%)',
+                left: mousePosition.x - 1000,
+                top: mousePosition.y - 400,
+                // transform: 'translate(-50%, -100%)',
               }}
             >
               {(() => {
