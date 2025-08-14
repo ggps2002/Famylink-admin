@@ -58,6 +58,7 @@ interface Blog {
   authorId: number;
   isPublished: boolean;
   publishedAt?: string;
+  featuredImage: string;
   category:
     | "Tips for Parents"
     | "Tips For Nannies"
@@ -290,6 +291,7 @@ export default function Blogs() {
                       content: editingBlog.content,
                       excerpt: editingBlog.excerpt,
                       category: editingBlog.category,
+                      featuredImage: editingBlog.featuredImage
                     }
                   : undefined
               }

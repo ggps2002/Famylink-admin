@@ -28,7 +28,7 @@ interface CreatorDetails {
 
 type PostCreators = Record<string, CreatorDetails>;
 
-const dateFormatting = (date) => {
+const dateFormatting = (date : any) => {
   const createdAtDate = new Date(date);
   const now = new Date();
 
@@ -121,7 +121,7 @@ const handleDelete = (id : string) => {
     const relatedReplies = replyComments.filter(
       (reply) =>
         reply.replies[0].comment === originalComment.comment ||
-        reply.replies.some((r) => r.user === originalComment.user?._id)
+        reply.replies.some((r) => r.user === originalComment.user)
     );
 
     return {

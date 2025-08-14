@@ -9,6 +9,7 @@ interface Blog {
   slug: string;
   authorId: number;
   isPublished: boolean;
+  featuredImage: string;
   category:
     | "Tips for Parents"
     | "Tips For Nannies"
