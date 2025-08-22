@@ -16,14 +16,101 @@ import USAMap from "@/components/dashboard/usa-map";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/redux/store";
 import { fetchTotalJobsCountThunk } from "@/redux/slices/jobSlice";
+import { api } from "@/lib/Config/api";
+import { logout, refreshTokenThunk } from "@/redux/slices/authSlice";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isLoading } = useSelector((state: RootState) => state.auth);
- 
+  const { user, isLoading, accessTokenExpiry } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
+
+  useEffect(() => {
+    const checkTokenOnLoad = async () => {
+      const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+      if (accessTokenExpiry && currentTime >= accessTokenExpiry) {
+        try {
+          const { status } = await dispatch(refreshTokenThunk()).unwrap();
+          if (status !== 200) {
+            // If refresh fails, log out and redirect to login
+            await dispatch(logout());
+            router.push("/login");
+          }
+        } catch {
+          // If refresh fails, log out and redirect to login
+          await dispatch(logout());
+           router.push("/login");
+        }
+      }
+    };
+
+    checkTokenOnLoad(); // Check token validity on component mount
+  }, [accessTokenExpiry, dispatch, router]);
+
+  useEffect(() => {
+    let refreshTimeout : any;
+
+    const setupTokenRefresh = () => {
+      if (!accessTokenExpiry) return;
+
+      const currentTime = Math.floor(Date.now() / 1000);
+      const timeLeft = accessTokenExpiry - currentTime;
+
+      if (timeLeft > 60) {
+        const refreshTime = (timeLeft - 60) * 1000;
+        refreshTimeout = setTimeout(async () => {
+          try {
+            const { status } = await dispatch(refreshTokenThunk()).unwrap();
+            if (status !== 200) {
+              await dispatch(logout());
+               router.push("/login");
+            } else {
+              setupTokenRefresh();
+            }
+          } catch {
+            await dispatch(logout());
+             router.push("/login");
+          }
+        }, refreshTime);
+      }
+    };
+
+    setupTokenRefresh();
+
+    return () => clearTimeout(refreshTimeout);
+  }, [accessTokenExpiry, dispatch, router]);
+
+  useEffect(() => {
+    const interceptor = api.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+          try {
+            const { status } = await dispatch(refreshTokenThunk()).unwrap();
+            if (status === 200) {
+              return api(originalRequest);
+            } else {
+              await dispatch(logout());
+                 router.push("/login");
+            }
+          } catch {
+            await dispatch(logout());
+              router.push("/login");
+          }
+        }
+
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      api.interceptors.response.eject(interceptor);
+    };
+  }, [dispatch, router]);
+ 
   // Redirect if not logged in
   useEffect(() => {
     if (!user?._id && !isLoading) {
