@@ -23,6 +23,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchNanniesThunk } from "@/redux/slices/userDataSlice";
 import { RootState, AppDispatch } from "@/redux/store";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 interface Nanny {
   id: number;
@@ -49,13 +50,15 @@ export default function Nannies() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
+   const limit = 10;
   const { nannies, isLoading, paginationNanny } = useSelector(
     (state: RootState) => state.userData
   );
   const dispatch = useDispatch<AppDispatch>();
+    const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => {
-    dispatch(fetchNanniesThunk());
-  }, [dispatch]);
+    dispatch(fetchNanniesThunk({ page: currentPage, limit: limit }));
+  }, [dispatch, currentPage]);
 
   // const { data: allUsers, isLoading } = useQuery<Nanny[]>({
   //   queryKey: ["/api/users"],
@@ -141,7 +144,7 @@ export default function Nannies() {
             </div>
             <div className="flex items-center space-x-2">
               <Badge variant="secondary" className="text-lg px-4 py-2">
-                {filteredNannies?.length} Nannies
+                {paginationNanny?.totalRecords} Nannies
               </Badge>
             </div>
           </div>
@@ -190,6 +193,7 @@ export default function Nannies() {
               </CardContent>
             </Card>
           ) : (
+            <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredNannies?.map((nanny) => (
                 <Card
@@ -283,7 +287,52 @@ export default function Nannies() {
                 </Card>
               ))}
             </div>
+                 {paginationNanny && paginationNanny.totalPages && paginationNanny.totalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage > 1) setCurrentPage(currentPage - 1);
+                        }}
+                      />
+                    </PaginationItem>
+
+                    {Array.from({ length: paginationNanny.totalPages || 0 }, (_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === i + 1}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(i + 1);
+                          }}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+
+                    {paginationNanny.totalPages && currentPage < paginationNanny.totalPages && (
+                      <PaginationItem>
+                        <PaginationNext
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (paginationNanny?.currentPage < paginationNanny.totalPages)
+                              setCurrentPage(currentPage + 1);
+                          }}
+                        />
+                      </PaginationItem>
+                    )}
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
           )}
+
         </main>
       </div>
     </div>

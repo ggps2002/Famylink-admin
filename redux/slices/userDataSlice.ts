@@ -118,11 +118,11 @@ export const fetchTopUsersThunk = createAsyncThunk(
 // Thunk to fetch all Nannies
 export const fetchNanniesThunk = createAsyncThunk(
   "jobs/fetchNanniesThunk",
-  async (_, { getState, rejectWithValue }) => {
+  async (pagination: { page: number; limit: number }, { getState, rejectWithValue }) => {
     const { auth }: any  = getState();
     const { accessToken } = auth;
     try {
-      const response = await api.get(`/userData/nannies`, {
+      const response = await api.get(`/userData/nannies?page=${pagination.page}&limit=${pagination.limit}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           // ⚠️ Don't manually set Content-Type here, Axios will handle it
@@ -140,11 +140,11 @@ export const fetchNanniesThunk = createAsyncThunk(
 // Thunk to fetch all Nannies
 export const fetchFamiliesThunk = createAsyncThunk(
   "jobs/fetchFamiliesThunk",
-  async (_, { getState, rejectWithValue }) => {
+  async (pagination: { page: number; limit: number }, { getState, rejectWithValue }) => {
     const { auth }: any  = getState();
     const { accessToken } = auth;
     try {
-      const response = await api.get(`/userData/families`, {
+      const response = await api.get(`/userData/families?page=${pagination.page}&limit=${pagination.limit}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           // ⚠️ Don't manually set Content-Type here, Axios will handle it

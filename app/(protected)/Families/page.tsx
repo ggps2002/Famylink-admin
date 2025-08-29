@@ -44,6 +44,14 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFamiliesThunk } from "@/redux/slices/userDataSlice";
 import { RootState, AppDispatch } from "@/redux/store";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface Parents {
   id: number;
@@ -71,13 +79,15 @@ export default function Users() {
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
   const isMobile = useIsMobile();
+  const limit = 10;
+  const [currentPage, setCurrentPage] = useState(1);
   const { families, isLoading, paginationFamily } = useSelector(
     (state: RootState) => state.userData
   );
   const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
-    dispatch(fetchFamiliesThunk());
-  }, [dispatch]);
+    dispatch(fetchFamiliesThunk({ page: currentPage, limit: limit }));
+  }, [dispatch, currentPage]);
 
   const filteredUsers =
     families?.filter((user) => {
@@ -85,7 +95,6 @@ export default function Users() {
         user.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase());
-
 
       return matchesSearch;
     }) || [];
@@ -167,7 +176,7 @@ export default function Users() {
           {/* Users List */}
           <Card>
             <CardHeader>
-              <CardTitle>Users ({filteredUsers.length})</CardTitle>
+              <CardTitle>Users ({paginationFamily?.totalRecords})</CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -191,95 +200,152 @@ export default function Users() {
                   No users found matching your criteria
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {filteredUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-                    >
-                      <Avatar className="w-12 h-12">
-                        <AvatarImage src={user.profileImage} />
-                        <AvatarFallback>
-                          {user.firstName[0]}
-                          {user.lastName[0]}
-                        </AvatarFallback>
-                      </Avatar>
+                <div>
+                  <div className="space-y-4">
+                    {filteredUsers.map((user) => (
+                      <div
+                        key={user.id}
+                        className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                      >
+                        <Avatar className="w-12 h-12">
+                          <AvatarImage src={user.profileImage} />
+                          <AvatarFallback>
+                            {user.firstName[0]}
+                            {user.lastName[0]}
+                          </AvatarFallback>
+                        </Avatar>
 
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-medium text-foreground">
-                            {user.firstName} {user.lastName}
-                          </h3>
-                          <Badge variant={getRoleBadgeVariant(user.role)}>
-                            {user.role}
-                          </Badge>
-                          <div className="flex items-start space-y-2 flex-wrap gap-2">
-                            <Badge
-                              variant={user.isActive ? "default" : "secondary"}
-                              className="text-xs"
-                            >
-                              {user.isActive ? "Active" : "Inactive"}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h3 className="font-medium text-foreground">
+                              {user.firstName} {user.lastName}
+                            </h3>
+                            <Badge variant={getRoleBadgeVariant(user.role)}>
+                              {user.role}
                             </Badge>
-                            {user.isVerifiedEmail && (
+                            <div className="flex items-start space-y-2 flex-wrap gap-2">
                               <Badge
-                                variant="outline"
-                                className="text-green-600 text-xs"
+                                variant={
+                                  user.isActive ? "default" : "secondary"
+                                }
+                                className="text-xs"
                               >
-                                Verified Email
+                                {user.isActive ? "Active" : "Inactive"}
                               </Badge>
+                              {user.isVerifiedEmail && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-green-600 text-xs"
+                                >
+                                  Verified Email
+                                </Badge>
+                              )}
+                              {user.isVerifiedID && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-green-600 text-xs"
+                                >
+                                  Verified ID
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            <div className="flex items-center">
+                              <Mail className="w-3 h-3 mr-1" />
+                              {user.email}
+                            </div>
+                            {user.phone && (
+                              <div className="flex items-center">
+                                <Phone className="w-3 h-3 mr-1" />
+                                {user.phone}
+                              </div>
                             )}
-                            {user.isVerifiedID && (
-                              <Badge
-                                variant="outline"
-                                className="text-green-600 text-xs"
-                              >
-                                Verified ID
-                              </Badge>
+                            {user.city && (
+                              <div className="flex items-center">
+                                <MapPin className="w-3 h-3 mr-1" />
+                                {user.city}, {user.state}
+                              </div>
+                            )}
+                            {user.hourlyRate && (
+                              <div className="flex items-center">
+                                <span className="font-medium text-green-600">
+                                  ${user.hourlyRate}/hr
+                                </span>
+                              </div>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                          <div className="flex items-center">
-                            <Mail className="w-3 h-3 mr-1" />
-                            {user.email}
-                          </div>
-                          {user.phone && (
-                            <div className="flex items-center">
-                              <Phone className="w-3 h-3 mr-1" />
-                              {user.phone}
-                            </div>
-                          )}
-                          {user.city && (
-                            <div className="flex items-center">
-                              <MapPin className="w-3 h-3 mr-1" />
-                              {user.city}, {user.state}
-                            </div>
-                          )}
-                          {user.hourlyRate && (
-                            <div className="flex items-center">
-                              <span className="font-medium text-green-600">
-                                ${user.hourlyRate}/hr
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
 
-                      <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                    {paginationFamily &&
+                      paginationFamily.totalPages &&
+                      paginationFamily.totalPages > 1 && (
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (currentPage > 1)
+                                    setCurrentPage(currentPage - 1);
+                                }}
+                              />
+                            </PaginationItem>
+
+                            {Array.from(
+                              { length: paginationFamily.totalPages || 0 },
+                              (_, i) => (
+                                <PaginationItem key={i}>
+                                  <PaginationLink
+                                    href="#"
+                                    isActive={currentPage === i + 1}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setCurrentPage(i + 1);
+                                    }}
+                                  >
+                                    {i + 1}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              )
+                            )}
+
+                            {paginationFamily.totalPages &&
+                              currentPage < paginationFamily.totalPages && (
+                                <PaginationItem>
+                                  <PaginationNext
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (
+                                        paginationFamily?.currentPage <
+                                        paginationFamily.totalPages
+                                      )
+                                        setCurrentPage(currentPage + 1);
+                                    }}
+                                  />
+                                </PaginationItem>
+                              )}
+                          </PaginationContent>
+                        </Pagination>
+                      )}
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -311,4 +377,3 @@ export default function Users() {
     </div>
   );
 }
-
