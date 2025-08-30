@@ -3,12 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
+import { UserPlus, Briefcase, Star, FileText } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { ThunkDispatch, UnknownAction, Dispatch } from "@reduxjs/toolkit";
+import { PersistPartial } from "redux-persist/es/persistReducer";
+import { fetchSubscribersThunk } from "@/redux/slices/subscribersSlice";
 import {
-  UserPlus,
-  Briefcase,
-  Star,
-  FileText,
-} from "lucide-react";
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../ui/pagination";
 
 interface Activity {
   type: string;
@@ -48,16 +57,24 @@ const getActivityColor = (type: string) => {
 };
 
 export default function RecentActivity() {
-  const { data: activities, isLoading } = useQuery<Activity[]>({
-    queryKey: ["/api/dashboard/recent-activity"],
-  });
+  const limit = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const { emailList, isLoading, paginationSubscribers } = useSelector(
+    (state: RootState) => state.subscribers
+  );
+  const dispatch = useDispatch<AppDispatch>();
+  useEffect(() => {
+    dispatch(fetchSubscribersThunk({ page: currentPage, limit: limit }));
+  }, [dispatch, currentPage]);
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
+            <CardTitle className="text-lg font-semibold">
+              Newsletter Subscribers
+            </CardTitle>
             <Skeleton className="h-8 w-16" />
           </div>
         </CardHeader>
@@ -78,20 +95,22 @@ export default function RecentActivity() {
     );
   }
 
-  if (!activities || activities.length === 0) {
+  if (!emailList || emailList.length === 0) {
     return (
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-            <Button variant="ghost" size="sm">
+            <CardTitle className="text-lg font-semibold">
+              Newsletter Subscribers
+            </CardTitle>
+            {/* <Button variant="ghost" size="sm">
               View All
-            </Button>
+            </Button> */}
           </div>
         </CardHeader>
         <CardContent>
           <div className="text-center text-muted-foreground py-8">
-            No recent activity
+            No Subscribers
           </div>
         </CardContent>
       </Card>
@@ -102,35 +121,78 @@ export default function RecentActivity() {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-          <Button variant="ghost" size="sm">
+          <CardTitle className="text-lg font-semibold">
+            Newsletter Subscribers
+          </CardTitle>
+          {/* <Button variant="ghost" size="sm">
             View All
-          </Button>
+          </Button> */}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {activities.map((activity, index) => {
-            const ActivityIcon = getActivityIcon(activity.type);
-            const colorClass = getActivityColor(activity.type);
-            
+        <div className="space-y-1">
+          {emailList.map((sub, index) => {
             return (
               <div key={index} className="activity-item">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${colorClass}`}>
-                  <ActivityIcon className="w-4 h-4" />
-                </div>
                 <div className="flex-1">
-                  <p className="text-sm text-foreground">
-                    <span className="font-medium">{activity.title}:</span> {activity.description}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
-                  </p>
+                  <p className="text-sm text-foreground">{sub.email}</p>
                 </div>
               </div>
             );
           })}
         </div>
+        {paginationSubscribers &&
+          paginationSubscribers.totalPages &&
+          paginationSubscribers.totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) setCurrentPage(currentPage - 1);
+                    }}
+                  />
+                </PaginationItem>
+
+                {Array.from(
+                  { length: paginationSubscribers.totalPages || 0 },
+                  (_, i) => (
+                    <PaginationItem key={i}>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === i + 1}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(i + 1);
+                        }}
+                      >
+                        {i + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+
+                {paginationSubscribers.totalPages &&
+                  currentPage < paginationSubscribers.totalPages && (
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (
+                            paginationSubscribers?.currentPage <
+                            paginationSubscribers.totalPages
+                          )
+                            setCurrentPage(currentPage + 1);
+                        }}
+                      />
+                    </PaginationItem>
+                  )}
+              </PaginationContent>
+            </Pagination>
+          )}
       </CardContent>
     </Card>
   );
