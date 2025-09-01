@@ -297,6 +297,7 @@ export default function Users() {
                       paginationFamily.totalPages > 1 && (
                         <Pagination>
                           <PaginationContent>
+                            {/* Previous button */}
                             <PaginationItem>
                               <PaginationPrevious
                                 href="#"
@@ -308,24 +309,98 @@ export default function Users() {
                               />
                             </PaginationItem>
 
-                            {Array.from(
-                              { length: paginationFamily.totalPages || 0 },
-                              (_, i) => (
-                                <PaginationItem key={i}>
-                                  <PaginationLink
-                                    href="#"
-                                    isActive={currentPage === i + 1}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      setCurrentPage(i + 1);
-                                    }}
-                                  >
-                                    {i + 1}
-                                  </PaginationLink>
-                                </PaginationItem>
-                              )
-                            )}
+                            {/* Page numbers with ellipsis */}
+                            {(() => {
+                              const totalPages = paginationFamily.totalPages;
+                              const pages = [];
+                              const maxVisible = 3;
 
+                              let start = Math.max(1, currentPage - 1);
+                              let end = Math.min(totalPages, currentPage + 1);
+
+                              if (currentPage <= 2) {
+                                start = 1;
+                                end = Math.min(totalPages, maxVisible);
+                              } else if (currentPage >= totalPages - 1) {
+                                start = Math.max(
+                                  1,
+                                  totalPages - (maxVisible - 1)
+                                );
+                                end = totalPages;
+                              }
+
+                              // First page + ellipsis
+                              if (start > 1) {
+                                pages.push(
+                                  <PaginationItem key={1}>
+                                    <PaginationLink
+                                      href="#"
+                                      isActive={currentPage === 1}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        setCurrentPage(1);
+                                      }}
+                                    >
+                                      1
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                );
+                                if (start > 2) {
+                                  pages.push(
+                                    <PaginationItem key="start-ellipsis">
+                                      <span className="px-2">...</span>
+                                    </PaginationItem>
+                                  );
+                                }
+                              }
+
+                              // Visible pages
+                              for (let i = start; i <= end; i++) {
+                                pages.push(
+                                  <PaginationItem key={i}>
+                                    <PaginationLink
+                                      href="#"
+                                      isActive={currentPage === i}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        setCurrentPage(i);
+                                      }}
+                                    >
+                                      {i}
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                );
+                              }
+
+                              // Last page + ellipsis
+                              if (end < totalPages) {
+                                if (end < totalPages - 1) {
+                                  pages.push(
+                                    <PaginationItem key="end-ellipsis">
+                                      <span className="px-2">...</span>
+                                    </PaginationItem>
+                                  );
+                                }
+                                pages.push(
+                                  <PaginationItem key={totalPages}>
+                                    <PaginationLink
+                                      href="#"
+                                      isActive={currentPage === totalPages}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        setCurrentPage(totalPages);
+                                      }}
+                                    >
+                                      {totalPages}
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                );
+                              }
+
+                              return pages;
+                            })()}
+
+                            {/* Next button */}
                             {paginationFamily.totalPages &&
                               currentPage < paginationFamily.totalPages && (
                                 <PaginationItem>
@@ -334,10 +409,11 @@ export default function Users() {
                                     onClick={(e) => {
                                       e.preventDefault();
                                       if (
-                                        paginationFamily?.currentPage <
+                                        currentPage <
                                         paginationFamily.totalPages
-                                      )
+                                      ) {
                                         setCurrentPage(currentPage + 1);
+                                      }
                                     }}
                                   />
                                 </PaginationItem>
