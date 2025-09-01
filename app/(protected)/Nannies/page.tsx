@@ -23,7 +23,14 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchNanniesThunk } from "@/redux/slices/userDataSlice";
 import { RootState, AppDispatch } from "@/redux/store";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface Nanny {
   id: number;
@@ -50,12 +57,12 @@ export default function Nannies() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
-   const limit = 10;
+  const limit = 10;
   const { nannies, isLoading, paginationNanny } = useSelector(
     (state: RootState) => state.userData
   );
   const dispatch = useDispatch<AppDispatch>();
-    const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => {
     dispatch(fetchNanniesThunk({ page: currentPage, limit: limit }));
   }, [dispatch, currentPage]);
@@ -194,148 +201,226 @@ export default function Nannies() {
             </Card>
           ) : (
             <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredNannies?.map((nanny) => (
-                <Card
-                  key={nanny.id}
-                  className="hover:shadow-md transition-shadow"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <Avatar className="w-16 h-16">
-                        <AvatarImage src={nanny.profileImage} />
-                        <AvatarFallback className="text-lg">
-                          {nanny.firstName[0]}
-                          {nanny.lastName[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground text-lg">
-                          {nanny.firstName} {nanny.lastName}
-                        </h3>
-                        <div className="flex items-start space-y-2 flex-wrap gap-2">
-                          <Badge
-                            variant={nanny.isActive ? "default" : "secondary"}
-                            className="text-xs"
-                          >
-                            {nanny.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                          {nanny.isVerifiedEmail && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredNannies?.map((nanny) => (
+                  <Card
+                    key={nanny.id}
+                    className="hover:shadow-md transition-shadow"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-center space-x-4 mb-4">
+                        <Avatar className="w-16 h-16">
+                          <AvatarImage src={nanny.profileImage} />
+                          <AvatarFallback className="text-lg">
+                            {nanny.firstName[0]}
+                            {nanny.lastName[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-foreground text-lg">
+                            {nanny.firstName} {nanny.lastName}
+                          </h3>
+                          <div className="flex items-start space-y-2 flex-wrap gap-2">
                             <Badge
-                              variant="outline"
-                              className="text-green-600 text-xs"
+                              variant={nanny.isActive ? "default" : "secondary"}
+                              className="text-xs"
                             >
-                              Verified Email
+                              {nanny.isActive ? "Active" : "Inactive"}
                             </Badge>
-                          )}
-                          {nanny.isVerifiedID && (
-                            <Badge
-                              variant="outline"
-                              className="text-green-600 text-xs"
-                            >
-                              Verified ID
-                            </Badge>
-                          )}
+                            {nanny.isVerifiedEmail && (
+                              <Badge
+                                variant="outline"
+                                className="text-green-600 text-xs"
+                              >
+                                Verified Email
+                              </Badge>
+                            )}
+                            {nanny.isVerifiedID && (
+                              <Badge
+                                variant="outline"
+                                className="text-green-600 text-xs"
+                              >
+                                Verified ID
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Mail className="w-4 h-4 mr-2" />
-                        {nanny.email}
-                      </div>
-                      {nanny.phone && (
+                      <div className="space-y-2 mb-4">
                         <div className="flex items-center text-sm text-muted-foreground">
-                          <Phone className="w-4 h-4 mr-2" />
-                          {nanny.phone}
+                          <Mail className="w-4 h-4 mr-2" />
+                          {nanny.email}
                         </div>
-                      )}
-                      {nanny.city && (
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <MapPin className="w-4 h-4 mr-2" />
-                          {nanny.city}, {nanny.state}
-                        </div>
-                      )}
-                      {nanny.hourlyRate && (
-                        <div className="flex items-center text-sm font-medium text-green-600">
-                          <DollarSign className="w-4 h-4 mr-2" />$
-                          {nanny.hourlyRate}/hour
-                        </div>
-                      )}
-                    </div>
-
-                    {nanny.bio && (
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                        {nanny.bio}
-                      </p>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Star className="w-4 h-4 mr-1 text-yellow-400" />
-                        <span>
-                          {nanny.avgRating} ({nanny.totalReviews} reviews)
-                        </span>
+                        {nanny.phone && (
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Phone className="w-4 h-4 mr-2" />
+                            {nanny.phone}
+                          </div>
+                        )}
+                        {nanny.city && (
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <MapPin className="w-4 h-4 mr-2" />
+                            {nanny.city}, {nanny.state}
+                          </div>
+                        )}
+                        {nanny.hourlyRate && (
+                          <div className="flex items-center text-sm font-medium text-green-600">
+                            <DollarSign className="w-4 h-4 mr-2" />$
+                            {nanny.hourlyRate}/hour
+                          </div>
+                        )}
                       </div>
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Profile
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-                 {paginationNanny && paginationNanny.totalPages && paginationNanny.totalPages > 1 && (
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (currentPage > 1) setCurrentPage(currentPage - 1);
-                        }}
-                      />
-                    </PaginationItem>
 
-                    {Array.from({ length: paginationNanny.totalPages || 0 }, (_, i) => (
-                      <PaginationItem key={i}>
-                        <PaginationLink
-                          href="#"
-                          isActive={currentPage === i + 1}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setCurrentPage(i + 1);
-                          }}
-                        >
-                          {i + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
+                      {nanny.bio && (
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                          {nanny.bio}
+                        </p>
+                      )}
 
-                    {paginationNanny.totalPages && currentPage < paginationNanny.totalPages && (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Star className="w-4 h-4 mr-1 text-yellow-400" />
+                          <span>
+                            {nanny.avgRating} ({nanny.totalReviews} reviews)
+                          </span>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Profile
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {paginationNanny &&
+                paginationNanny.totalPages &&
+                paginationNanny.totalPages > 1 && (
+                  <Pagination>
+                    <PaginationContent>
+                      {/* Previous button */}
                       <PaginationItem>
-                        <PaginationNext
+                        <PaginationPrevious
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            if (paginationNanny?.currentPage < paginationNanny.totalPages)
-                              setCurrentPage(currentPage + 1);
+                            if (currentPage > 1)
+                              setCurrentPage(currentPage - 1);
                           }}
                         />
                       </PaginationItem>
-                    )}
-                  </PaginationContent>
-                </Pagination>
-              )}
+
+                      {/* Page numbers with ellipsis */}
+                      {(() => {
+                        const totalPages = paginationNanny.totalPages;
+                        const pages = [];
+                        const maxVisible = 3;
+
+                        let start = Math.max(1, currentPage - 1);
+                        let end = Math.min(totalPages, currentPage + 1);
+
+                        if (currentPage <= 2) {
+                          start = 1;
+                          end = Math.min(totalPages, maxVisible);
+                        } else if (currentPage >= totalPages - 1) {
+                          start = Math.max(1, totalPages - (maxVisible - 1));
+                          end = totalPages;
+                        }
+
+                        // First page + ellipsis
+                        if (start > 1) {
+                          pages.push(
+                            <PaginationItem key={1}>
+                              <PaginationLink
+                                href="#"
+                                isActive={currentPage === 1}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCurrentPage(1);
+                                }}
+                              >
+                                1
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                          if (start > 2) {
+                            pages.push(
+                              <PaginationItem key="start-ellipsis">
+                                <span className="px-2">...</span>
+                              </PaginationItem>
+                            );
+                          }
+                        }
+
+                        // Visible pages
+                        for (let i = start; i <= end; i++) {
+                          pages.push(
+                            <PaginationItem key={i}>
+                              <PaginationLink
+                                href="#"
+                                isActive={currentPage === i}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCurrentPage(i);
+                                }}
+                              >
+                                {i}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        }
+
+                        // Last page + ellipsis
+                        if (end < totalPages) {
+                          if (end < totalPages - 1) {
+                            pages.push(
+                              <PaginationItem key="end-ellipsis">
+                                <span className="px-2">...</span>
+                              </PaginationItem>
+                            );
+                          }
+                          pages.push(
+                            <PaginationItem key={totalPages}>
+                              <PaginationLink
+                                href="#"
+                                isActive={currentPage === totalPages}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCurrentPage(totalPages);
+                                }}
+                              >
+                                {totalPages}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        }
+
+                        return pages;
+                      })()}
+
+                      {/* Next button */}
+                      {paginationNanny.totalPages &&
+                        currentPage < paginationNanny.totalPages && (
+                          <PaginationItem>
+                            <PaginationNext
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (currentPage < paginationNanny.totalPages) {
+                                  setCurrentPage(currentPage + 1);
+                                }
+                              }}
+                            />
+                          </PaginationItem>
+                        )}
+                    </PaginationContent>
+                  </Pagination>
+                )}
             </>
           )}
-
         </main>
       </div>
     </div>
   );
 }
-
