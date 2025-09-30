@@ -17,6 +17,7 @@ import revenueReducer from "../slices/revenueSlice";
 import blogReducer from '../slices/blogSlice'
 import communityReducer from '../slices/communitySlice'
 import subscriberReducer from '../slices/subscribersSlice'
+import nannyShareReducer from "../slices/NannyShareData"
 
 const rootReducer = combineReducers({
   subscribers: subscriberReducer,
@@ -25,7 +26,8 @@ const rootReducer = combineReducers({
   userData: userDataReducer,
   revenue: revenueReducer,
   blogs: blogReducer,
-  community : communityReducer
+  community : communityReducer,
+  nannyShare : nannyShareReducer
 });
 
 const persistConfig = {

@@ -131,7 +131,7 @@ export const fetchNanniesThunk = createAsyncThunk(
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch top nannies"
+        error.response?.data?.message || "Failed to fetch nannies"
       );
     }
   }

@@ -24,8 +24,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ open, onClose, isMobile }: SidebarProps) {
-const pathname = usePathname();
-
+  const pathname = usePathname();
 
   const navigationItems = [
     {
@@ -63,6 +62,14 @@ const pathname = usePathname();
   ];
 
   const contentItems = [
+    {
+      title: "Nanny Share Listings",
+      icon: Users,
+      href: "/NannyShares",
+      badge: "99",
+      badgeVariant: "outline" as const,
+      isActive: pathname === "/NannyShares",
+    },
     {
       title: "Job Listings",
       icon: Briefcase,
@@ -108,7 +115,11 @@ const pathname = usePathname();
     <div
       className={cn(
         "fixed left-0 top-0 h-full w-72 bg-sidebar border-r border-sidebar-border z-50 flex flex-col transition-transform duration-300",
-        isMobile ? (open ? "translate-x-0" : "-translate-x-full") : "translate-x-0"
+        isMobile
+          ? open
+            ? "translate-x-0"
+            : "-translate-x-full"
+          : "translate-x-0"
       )}
     >
       {/* Logo Section */}
@@ -128,10 +139,7 @@ const pathname = usePathname();
           {navigationItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <div
-                className={cn(
-                  "sidebar-nav-item",
-                  item.isActive && "active"
-                )}
+                className={cn("sidebar-nav-item", item.isActive && "active")}
                 onClick={isMobile ? onClose : undefined}
               >
                 <item.icon className="w-5 h-5" />
@@ -152,16 +160,16 @@ const pathname = usePathname();
             {userManagementItems.map((item) => (
               <Link key={item.href} href={item.href}>
                 <div
-                  className={cn(
-                    "sidebar-nav-item",
-                    item.isActive && "active"
-                  )}
+                  className={cn("sidebar-nav-item", item.isActive && "active")}
                   onClick={isMobile ? onClose : undefined}
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="flex-1">{item.title}</span>
                   {item.badge && (
-                    <Badge variant={item.badgeVariant || "default"} className="text-xs">
+                    <Badge
+                      variant={item.badgeVariant || "default"}
+                      className="text-xs"
+                    >
                       {item.badge}
                     </Badge>
                   )}
@@ -182,16 +190,16 @@ const pathname = usePathname();
             {contentItems.map((item) => (
               <Link key={item.href} href={item.href}>
                 <div
-                  className={cn(
-                    "sidebar-nav-item",
-                    item.isActive && "active"
-                  )}
+                  className={cn("sidebar-nav-item", item.isActive && "active")}
                   onClick={isMobile ? onClose : undefined}
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="flex-1">{item.title}</span>
                   {item.badge && (
-                    <Badge variant={item.badgeVariant || "default"} className="text-xs">
+                    <Badge
+                      variant={item.badgeVariant || "default"}
+                      className="text-xs"
+                    >
                       {item.badge}
                     </Badge>
                   )}
@@ -212,16 +220,16 @@ const pathname = usePathname();
             {supportItems.map((item) => (
               <Link key={item.href} href={item.href}>
                 <div
-                  className={cn(
-                    "sidebar-nav-item",
-                    item.isActive && "active"
-                  )}
+                  className={cn("sidebar-nav-item", item.isActive && "active")}
                   onClick={isMobile ? onClose : undefined}
                 >
                   <item.icon className="w-5 h-5" />
                   <span className="flex-1">{item.title}</span>
                   {item.badge && (
-                    <Badge variant={item.badgeVariant || "default"} className="text-xs">
+                    <Badge
+                      variant={item.badgeVariant || "default"}
+                      className="text-xs"
+                    >
                       {item.badge}
                     </Badge>
                   )}
@@ -240,7 +248,9 @@ const pathname = usePathname();
             <AvatarFallback>AU</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-foreground truncate">Admin User</div>
+            <div className="font-medium text-foreground truncate">
+              Admin User
+            </div>
             <div className="text-sm text-muted-foreground">Administrator</div>
           </div>
           <ChevronUp className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
