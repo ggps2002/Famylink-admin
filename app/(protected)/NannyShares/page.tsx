@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/pagination";
 import { fetchAllNannySharesThunk } from "@/redux/slices/NannyShareData";
 
-function formatLocation(loc) {
+function formatLocation(loc : any) {
   if (!loc?.format_location) return "Neighborhood";
   const parts = loc.format_location.split(",") || [];
   const city = parts.at(-3)?.trim();
