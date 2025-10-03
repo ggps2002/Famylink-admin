@@ -44,6 +44,7 @@ import {
   Edit2,
   Check,
   Minus,
+  X,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -204,6 +205,47 @@ export default function Users() {
     }
   };
 
+  const handleImageRemove = async (id: number) => {
+    setLoading((prev) => ({
+      ...prev,
+      [id]: true, // start loading for this nanny
+    }));
+    console.log("user Id", id);
+    if (!id) {
+      toast.error("Error", {
+        description: "Missing Id",
+      });
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("userId", id.toString()); // Convert number to string
+      formData.append("removePfp", "true"); // Convert number to string
+
+      const { status, user } = await dispatch(updateProfile(formData)).unwrap();
+
+      if (status === 200) {
+        toast.success("Success", {
+          description: "User profile updated successfully!!",
+        });
+      }
+    } catch (e: any) {
+      toast.error("Error", {
+        description: "Failed to update profile pic",
+      });
+    } finally {
+      setLoading((prev) => ({
+        ...prev,
+        [id]: false, // stop loading
+      }));
+
+      // setImages((prev) => ({
+      //   ...prev,
+      //   [id]: null, // Set preview for that specific nanny
+      // }));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile overlay */}
@@ -327,15 +369,26 @@ export default function Users() {
                               </Label>
                             </>
                           ) : (
-                            <Label className="right-9 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-6 h-6 cursor-pointer p-2">
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => handleImageChange(e, user.id)}
-                              />
-                              <Edit2 />
-                            </Label>
+                            <>
+                              <Label className="right-9 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-6 h-6 cursor-pointer p-2">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) =>
+                                    handleImageChange(e, user.id)
+                                  }
+                                />
+                                <Edit2 />
+                              </Label>
+
+                              <Label
+                                className="-left-3 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-6 h-6 cursor-pointer p-2"
+                                onClick={() => handleImageRemove(user.id)}
+                              >
+                                <X />
+                              </Label>
+                            </>
                           )}
                         </div>
 
