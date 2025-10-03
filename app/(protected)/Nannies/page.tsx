@@ -19,9 +19,13 @@ import {
   Star,
   DollarSign,
   Eye,
+  Edit2,
+  Loader2,
+  Check,
+  Minus,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchNanniesThunk } from "@/redux/slices/userDataSlice";
+import { fetchNanniesThunk, updateProfile } from "@/redux/slices/userDataSlice";
 import { RootState, AppDispatch } from "@/redux/store";
 import {
   Pagination,
@@ -31,6 +35,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 interface Nanny {
   id: number;
@@ -116,6 +122,80 @@ export default function Nannies() {
       (nanny.city &&
         nanny.city.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const [images, setImages] = useState<Record<string, string | null>>({}); // Store images by nanny.id
+  const [files, setFiles] = useState<Record<string, File | null>>({}); // Store files by nanny.id
+  const [loading, setLoading] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    if (nannies) {
+      const initialLoading: Record<number, boolean> = {};
+      nannies.forEach((nanny) => {
+        initialLoading[nanny.id] = false;
+      });
+      setLoading(initialLoading);
+    }
+  }, [nannies]);
+
+  // Function to handle image change per nanny
+  const handleImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    nannyId: number
+  ) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      const imageUrl = URL.createObjectURL(selectedFile);
+      setImages((prev) => ({
+        ...prev,
+        [nannyId]: imageUrl, // Set preview for that specific nanny
+      }));
+      setFiles((prev) => ({
+        ...prev,
+        [nannyId]: selectedFile, // Store file for that nanny
+      }));
+    }
+  };
+
+  const handleEditProfilePic = async (id: number) => {
+    setLoading((prev) => ({
+      ...prev,
+      [id]: true, // start loading for this nanny
+    }));
+    console.log("user Id", id);
+    if (!id) {
+      toast.error("Error", {
+        description: "Missing Id",
+      });
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("userId", id.toString()); // Convert number to string
+      if (files[id]) formData.append("image", files[id]); // must match backend `req.files`
+
+      const { status, user } = await dispatch(updateProfile(formData)).unwrap();
+
+      if (status === 200) {
+        toast.success("Success", {
+          description: "User profile updated successfully!!",
+        });
+      }
+    } catch (e: any) {
+      toast.error("Error", {
+        description: "Failed to update profile pic",
+      });
+    } finally {
+      setLoading((prev) => ({
+        ...prev,
+        [id]: false, // stop loading
+      }));
+
+      setImages((prev) => ({
+        ...prev,
+        [id]: null, // Set preview for that specific nanny
+      }));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -209,13 +289,55 @@ export default function Nannies() {
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center space-x-4 mb-4">
-                        <Avatar className="w-16 h-16">
-                          <AvatarImage src={nanny.profileImage} />
-                          <AvatarFallback className="text-lg">
-                            {nanny.firstName[0]}
-                            {nanny.lastName[0]}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="relative w-24">
+                          <Avatar className="w-16 h-16">
+                            <AvatarImage
+                              src={images[nanny.id] ?? nanny.profileImage}
+                            />
+                            <AvatarFallback className="text-lg">
+                              {nanny.firstName[0]}
+                              {nanny.lastName[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          {loading[nanny.id] ? (
+                            <Label
+                              className="right-4 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-8 h-8 cursor-pointer p-2"
+                              onClick={() => handleEditProfilePic(nanny.id)}
+                            >
+                              <Loader2 className="animate-spin" />
+                            </Label>
+                          ) : images[nanny.id] ? (
+                            <>
+                              <Label
+                                className="right-4 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-8 h-8 cursor-pointer p-2"
+                                onClick={() => handleEditProfilePic(nanny.id)}
+                              >
+                                <Check />
+                              </Label>
+                              <Label
+                                className="-left-4 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-8 h-8 cursor-pointer p-2"
+                                onClick={() =>
+                                  setImages((prev) => ({
+                                    ...prev,
+                                    [nanny.id]: null,
+                                  }))
+                                }
+                              >
+                                <Minus/>
+                              </Label>
+                            </>
+                          ) : (
+                            <Label className="right-4 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-8 h-8 cursor-pointer p-2">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleImageChange(e, nanny.id)}
+                              />
+                              <Edit2 />
+                            </Label>
+                          )}
+                        </div>
                         <div className="flex-1">
                           <h3 className="font-semibold text-foreground text-lg">
                             {nanny.firstName} {nanny.lastName}

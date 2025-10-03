@@ -75,7 +75,7 @@ const initialState: userData = {
 export const fetchTotalUsersPerTypeCountThunk = createAsyncThunk(
   "jobs/fetchTotalUsersPerTypeCountThunk",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } : any = getState();
+    const { auth }: any = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get("/userData/count/perType", {
@@ -97,7 +97,7 @@ export const fetchTotalUsersPerTypeCountThunk = createAsyncThunk(
 export const fetchTopUsersThunk = createAsyncThunk(
   "jobs/fetchTopUsersThunk",
   async (_, { getState, rejectWithValue }) => {
-    const { auth } : any = getState();
+    const { auth }: any = getState();
     const { accessToken } = auth;
     try {
       const response = await api.get("/userData/top-users", {
@@ -118,16 +118,22 @@ export const fetchTopUsersThunk = createAsyncThunk(
 // Thunk to fetch all Nannies
 export const fetchNanniesThunk = createAsyncThunk(
   "jobs/fetchNanniesThunk",
-  async (pagination: { page: number; limit: number }, { getState, rejectWithValue }) => {
-    const { auth }: any  = getState();
+  async (
+    pagination: { page: number; limit: number },
+    { getState, rejectWithValue }
+  ) => {
+    const { auth }: any = getState();
     const { accessToken } = auth;
     try {
-      const response = await api.get(`/userData/nannies?page=${pagination.page}&limit=${pagination.limit}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          // ⚠️ Don't manually set Content-Type here, Axios will handle it
-        },
-      }); // 🛑 Adjust the path if needed
+      const response = await api.get(
+        `/userData/nannies?page=${pagination.page}&limit=${pagination.limit}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            // ⚠️ Don't manually set Content-Type here, Axios will handle it
+          },
+        }
+      ); // 🛑 Adjust the path if needed
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -138,18 +144,47 @@ export const fetchNanniesThunk = createAsyncThunk(
 );
 
 // Thunk to fetch all Nannies
-export const fetchFamiliesThunk = createAsyncThunk(
-  "jobs/fetchFamiliesThunk",
-  async (pagination: { page: number; limit: number }, { getState, rejectWithValue }) => {
-    const { auth }: any  = getState();
+export const updateProfile = createAsyncThunk(
+  "user/updateProfile",
+  async (formData: FormData, { getState, rejectWithValue }) => {
+    const { auth }: any = getState();
     const { accessToken } = auth;
+
     try {
-      const response = await api.get(`/userData/families?page=${pagination.page}&limit=${pagination.limit}`, {
+      const { data, status } = await api.put("/edit/admin/user", formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          // ⚠️ Don't manually set Content-Type here, Axios will handle it
+          // ⚠️ Do NOT set Content-Type, Axios will handle multipart/form-data
         },
-      }); // 🛑 Adjust the path if needed
+      });
+      return { user: data.user, status };
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update profile pic"
+      );
+    }
+  }
+);
+
+// Thunk to fetch all Nannies
+export const fetchFamiliesThunk = createAsyncThunk(
+  "jobs/fetchFamiliesThunk",
+  async (
+    pagination: { page: number; limit: number },
+    { getState, rejectWithValue }
+  ) => {
+    const { auth }: any = getState();
+    const { accessToken } = auth;
+    try {
+      const response = await api.get(
+        `/userData/families?page=${pagination.page}&limit=${pagination.limit}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            // ⚠️ Don't manually set Content-Type here, Axios will handle it
+          },
+        }
+      ); // 🛑 Adjust the path if needed
       console.log("Families", response.data);
       return response.data;
     } catch (error: any) {
@@ -183,6 +218,52 @@ const userDataSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
+
+      // .addCase(updateProfile.pending, (state) => {
+      //   state.isLoading = true;
+      // })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        // state.isLoading = false;
+        const updatedUser = action.payload.user;
+
+        if (updatedUser.role === "Nanny") {
+          if (state.nannies) {
+            const index = state.nannies.findIndex(
+              (n) => n.id === updatedUser.id
+            );
+            if (index !== -1) {
+              // Replace existing nanny
+              state.nannies[index] = updatedUser;
+            } else {
+              // If nanny not found, add to the list
+              state.nannies.push(updatedUser);
+            }
+          } else {
+            // If nannies was null, initialize it
+            state.nannies = [updatedUser];
+          }
+        } else {
+          if (state.families) {
+            const index = state.families.findIndex(
+              (n) => n.id === updatedUser.id
+            );
+            if (index !== -1) {
+              // Replace existing nanny
+              state.families[index] = updatedUser;
+            } else {
+              // If nanny not found, add to the list
+              state.families.push(updatedUser);
+            }
+          } else {
+            // If nannies was null, initialize it
+            state.families = [updatedUser];
+          }
+        }
+      })
+
+      // .addCase(updateProfile.rejected, (state) => {
+      //   state.isLoading = false;
+      // })
       .addCase(fetchTopUsersThunk.fulfilled, (state, action) => {
         state.isLoading = false;
         state.topNannies = action.payload.topNannies;

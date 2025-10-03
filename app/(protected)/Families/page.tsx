@@ -40,9 +40,16 @@ import {
   Mail,
   Phone,
   Star,
+  Loader2,
+  Edit2,
+  Check,
+  Minus,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchFamiliesThunk } from "@/redux/slices/userDataSlice";
+import {
+  fetchFamiliesThunk,
+  updateProfile,
+} from "@/redux/slices/userDataSlice";
 import { RootState, AppDispatch } from "@/redux/store";
 import {
   Pagination,
@@ -52,6 +59,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Label } from "@/components/ui/label";
 
 interface Parents {
   id: number;
@@ -119,6 +127,80 @@ export default function Users() {
         return "destructive";
       default:
         return "outline";
+    }
+  };
+
+  const [images, setImages] = useState<Record<string, string | null>>({}); // Store images by nanny.id
+  const [files, setFiles] = useState<Record<string, File | null>>({}); // Store files by nanny.id
+  const [loading, setLoading] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    if (families) {
+      const initialLoading: Record<number, boolean> = {};
+      families.forEach((family) => {
+        initialLoading[family.id] = false;
+      });
+      setLoading(initialLoading);
+    }
+  }, [families]);
+
+  // Function to handle image change per nanny
+  const handleImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    nannyId: number
+  ) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      const imageUrl = URL.createObjectURL(selectedFile);
+      setImages((prev) => ({
+        ...prev,
+        [nannyId]: imageUrl, // Set preview for that specific nanny
+      }));
+      setFiles((prev) => ({
+        ...prev,
+        [nannyId]: selectedFile, // Store file for that nanny
+      }));
+    }
+  };
+
+  const handleEditProfilePic = async (id: number) => {
+    setLoading((prev) => ({
+      ...prev,
+      [id]: true, // start loading for this nanny
+    }));
+    console.log("user Id", id);
+    if (!id) {
+      toast.error("Error", {
+        description: "Missing Id",
+      });
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("userId", id.toString()); // Convert number to string
+      if (files[id]) formData.append("image", files[id]); // must match backend `req.files`
+
+      const { status, user } = await dispatch(updateProfile(formData)).unwrap();
+
+      if (status === 200) {
+        toast.success("Success", {
+          description: "User profile updated successfully!!",
+        });
+      }
+    } catch (e: any) {
+      toast.error("Error", {
+        description: "Failed to update profile pic",
+      });
+    } finally {
+      setLoading((prev) => ({
+        ...prev,
+        [id]: false, // stop loading
+      }));
+
+      setImages((prev) => ({
+        ...prev,
+        [id]: null, // Set preview for that specific nanny
+      }));
     }
   };
 
@@ -207,13 +289,55 @@ export default function Users() {
                         key={user.id}
                         className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
                       >
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={user.profileImage} />
-                          <AvatarFallback>
-                            {user.firstName[0]}
-                            {user.lastName[0]}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="relative w-24">
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage
+                              src={images[user.id] ?? user.profileImage}
+                            />
+                            <AvatarFallback>
+                              {user.firstName[0]}
+                              {user.lastName[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          {loading[user.id] ? (
+                            <Label
+                              className="right-9 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-6 h-6 cursor-pointer p-2"
+                              onClick={() => handleEditProfilePic(user.id)}
+                            >
+                              <Loader2 className="animate-spin" />
+                            </Label>
+                          ) : images[user.id] ? (
+                            <>
+                              <Label
+                                className="right-9 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-6 h-6 cursor-pointer p-2"
+                                onClick={() => handleEditProfilePic(user.id)}
+                              >
+                                <Check />
+                              </Label>
+                              <Label
+                                className="-left-3 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-6 h-6 cursor-pointer p-2"
+                                onClick={() =>
+                                  setImages((prev) => ({
+                                    ...prev,
+                                    [user.id]: null,
+                                  }))
+                                }
+                              >
+                                <Minus />
+                              </Label>
+                            </>
+                          ) : (
+                            <Label className="right-9 bottom-0 absolute flex justify-center items-center dark:bg-black bg-gray-300 rounded-full w-6 h-6 cursor-pointer p-2">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleImageChange(e, user.id)}
+                              />
+                              <Edit2 />
+                            </Label>
+                          )}
+                        </div>
 
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">

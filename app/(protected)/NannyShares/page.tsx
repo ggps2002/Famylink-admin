@@ -19,6 +19,7 @@ import {
   Star,
   DollarSign,
   Eye,
+  Edit2,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchNanniesThunk } from "@/redux/slices/userDataSlice";
@@ -33,7 +34,7 @@ import {
 } from "@/components/ui/pagination";
 import { fetchAllNannySharesThunk } from "@/redux/slices/NannyShareData";
 
-function formatLocation(loc : any) {
+function formatLocation(loc: any) {
   if (!loc?.format_location) return "Neighborhood";
   const parts = loc.format_location.split(",") || [];
   const city = parts.at(-3)?.trim();
@@ -133,7 +134,9 @@ export default function Nannies() {
           {/* Page Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-foreground">Nanny Shares</h2>
+              <h2 className="text-2xl font-bold text-foreground">
+                Nanny Shares
+              </h2>
               <p className="text-muted-foreground">
                 Manage and view all registered nanny shares.
               </p>
@@ -198,13 +201,14 @@ export default function Nannies() {
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center space-x-4 mb-4">
-                        <Avatar className="w-16 h-16">
-                          <AvatarImage src={ns.user?.imageUrl} />
-                          <AvatarFallback className="text-lg">
-                            {ns.user?.name?.split(" ")[0][0]}
-                            {ns.user?.name?.split(" ")[1][0].toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                          <Avatar className="w-16 h-16">
+                            <AvatarImage src={ns.user?.imageUrl} />
+                            <AvatarFallback className="text-lg">
+                              {ns.user?.name?.split(" ")[0][0]}
+                              {ns.user?.name?.split(" ")[1][0].toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
                         <div className="flex-1">
                           <h3 className="font-semibold text-foreground text-lg">
                             {ns.user?.name}
@@ -215,15 +219,18 @@ export default function Nannies() {
                                 {ns.nannyShareType}
                               </Badge>
                             )}
-                            {ns.flexibility && <Badge variant="outline" className="text-xs">
-                              {ns.flexibility}
-                            </Badge>}
-                            {ns.hostingPreference && <Badge variant="outline">
-                              {ns.hostingPreference}
-                            </Badge>}
+                            {ns.flexibility && (
+                              <Badge variant="outline" className="text-xs">
+                                {ns.flexibility}
+                              </Badge>
+                            )}
+                            {ns.hostingPreference && (
+                              <Badge variant="outline">
+                                {ns.hostingPreference}
+                              </Badge>
+                            )}
                           </div>
                         </div>
-                      </div>
 
                       <div className="space-y-2 mb-4">
                         <div className="flex items-center text-sm text-muted-foreground">
@@ -244,8 +251,7 @@ export default function Nannies() {
                         )}
                         {ns.hourlyBudget && (
                           <div className="flex items-center text-sm font-medium text-green-600">
-                            <DollarSign className="w-4 h-4 mr-2" />$
-                            {ns.hourlyBudget?.min}-{ns.hourlyBudget?.max}/hour
+                            ${ns.hourlyBudget?.min}-{ns.hourlyBudget?.max}/hour
                           </div>
                         )}
                       </div>
