@@ -1,10 +1,8 @@
-'use client'
+"use client";
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
-import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/dashboard/sidebar";
 import Header from "@/components/dashboard/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +38,9 @@ import {
   Plus,
   Filter,
 } from "lucide-react";
+import { RootState, AppDispatch } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchFeedbacks } from "@/redux/slices/feedbackSlice";
 
 interface HelpMessage {
   id: number;
@@ -54,10 +55,40 @@ interface HelpMessage {
   repliedAt?: string;
 }
 
+interface Feedbacks {
+  message: string;
+  category:
+    | "Bug Report"
+    | "Feature Request"
+    | "General Feedback"
+    | "Complaint"
+    | "Compliment";
+  email: string;
+  createdAt: string;
+}
+
+const categoryKeyMap = {
+  "Bug Report": "BugReport",
+  "Feature Request": "FeatureRequest",
+  "General Feedback": "GeneralFeedback",
+  Complaint: "Complaint",
+  Compliment: "Compliment",
+} as const;
+
 const statusColors = {
-  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  replied: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  closed: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
+  BugReport:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+
+  FeatureRequest:
+    "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300",
+
+  GeneralFeedback:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+
+  Complaint: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+
+  Compliment:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
 };
 
 const priorityColors = {
@@ -72,83 +103,44 @@ export default function HelpCenter() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [selectedMessage, setSelectedMessage] = useState<HelpMessage | null>(null);
+  const [selectedMessage, setSelectedMessage] = useState<HelpMessage | null>(
+    null
+  );
   const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [adminReply, setAdminReply] = useState("");
   const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
+  const {
+    feedbacks,
+    isLoading,
+  }: { feedbacks: Feedbacks[] | []; isLoading: boolean } = useSelector(
+    (state: RootState) => state.feedbacks
+  );
 
-  const { data: helpMessages, isLoading } = useQuery<HelpMessage[]>({
-    queryKey: ["/api/help-messages"],
+  const dispatch = useDispatch<AppDispatch>();
+  useEffect(() => {
+    dispatch(fetchFeedbacks());
+  }, [dispatch]);
+
+  const filteredMessages = feedbacks?.map((message) => {
+    return message;
   });
-
-  const replyMutation = useMutation({
-    mutationFn: (data: { id: number; adminReply: string; status: string }) =>
-      apiRequest(`/api/help-messages/${data.id}`, "PUT", data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/help-messages"] });
-      toast.success( "Reply sent successfully",{
-        description: "The user has been notified of your response.",
-      });
-      setReplyDialogOpen(false);
-      setAdminReply("");
-      setSelectedMessage(null);
-    },
-    onError: () => {
-      toast.error( "Error",{
-        description: "Failed to send reply. Please try again.",
-      });
-    },
-  });
-
-  const updateStatusMutation = useMutation({
-    mutationFn: (data: { id: number; status: string }) =>
-      apiRequest(`/api/help-messages/${data.id}`, "PUT", data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/help-messages"] });
-      toast.success("Status updated",{
-        description: "Message status has been updated successfully.",
-      });
-    },
-  });
-
-  const filteredMessages = helpMessages?.filter((message) => {
-    const matchesSearch = 
-      message.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      message.senderName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      message.message.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || message.status === statusFilter;
-    const matchesPriority = priorityFilter === "all" || message.priority === priorityFilter;
-    
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
-
-  const handleReply = () => {
-    if (!selectedMessage || !adminReply.trim()) return;
-    
-    replyMutation.mutate({
-      id: selectedMessage.id,
-      adminReply: adminReply.trim(),
-      status: "replied",
-    });
-  };
-
-  const handleStatusChange = (messageId: number, newStatus: string) => {
-    updateStatusMutation.mutate({ id: messageId, status: newStatus });
-  };
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} isMobile={isMobile}/>
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        isMobile={isMobile}
+      />
       <div className={`flex-1 ${isMobile ? "" : "ml-72"}`}>
         <Header onMenuClick={() => setSidebarOpen(true)} isMobile={isMobile} />
-        
+
         <main className="p-6">
           <div className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight">Help Center</h1>
             <p className="text-muted-foreground">
-              Manage user inquiries and provide support through our messaging system
+              Manage user inquiries and provide support through our messaging
+              system
             </p>
           </div>
 
@@ -204,53 +196,87 @@ export default function HelpCenter() {
               <Card>
                 <CardContent className="p-12 text-center">
                   <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No messages found</h3>
+                  <h3 className="text-lg font-medium mb-2">
+                    No messages found
+                  </h3>
                   <p className="text-muted-foreground">
-                    {searchQuery || statusFilter !== "all" || priorityFilter !== "all"
+                    {searchQuery ||
+                    statusFilter !== "all" ||
+                    priorityFilter !== "all"
                       ? "Try adjusting your filters to see more messages."
                       : "No user messages have been received yet."}
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              filteredMessages?.map((message) => (
-                <Card key={message.id} className="hover:shadow-md transition-shadow">
+              filteredMessages?.map((feedback, i) => (
+                <Card key={i} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row lg:items-start gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-lg">{message.subject}</h3>
-                          <Badge className={statusColors[message.status]}>{message.status}</Badge>
-                          <Badge className={priorityColors[message.priority]}>{message.priority}</Badge>
+                          {/* <h3 className="font-semibold text-lg">{message.subject}</h3> */}
+                          <Badge
+                            className={
+                              statusColors[categoryKeyMap[feedback.category]]
+                            }
+                          >
+                            {feedback.category}
+                          </Badge>
+                          {/* <Badge className={priorityColors[message.priority]}>{message.priority}</Badge> */}
                         </div>
                         <div className="text-sm text-muted-foreground mb-3">
-                          From: <span className="font-medium">{message.senderName}</span> ({message.senderEmail})
+                          From: {feedback.email}
                           <span className="ml-4">
                             <Clock className="inline h-3 w-3 mr-1" />
-                            {new Date(message.createdAt).toLocaleDateString()} at{" "}
-                            {new Date(message.createdAt).toLocaleTimeString()}
+                            {new Date(
+                              feedback.createdAt
+                            ).toLocaleDateString()}{" "}
+                            at{" "}
+                            {new Date(feedback.createdAt).toLocaleTimeString()}
                           </span>
                         </div>
                         <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-3">
-                          {message.message}
+                          {feedback.message}
                         </p>
-                        {message.adminReply && (
+                        {/* {message.adminReply && (
                           <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 mb-4">
                             <div className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-1">
                               Admin Reply:
                             </div>
-                            <p className="text-blue-800 dark:text-blue-200">{message.adminReply}</p>
+                            <p className="text-blue-800 dark:text-blue-200">
+                              {message.adminReply}
+                            </p>
                             {message.repliedAt && (
                               <div className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                                Replied on {new Date(message.repliedAt).toLocaleDateString()}
+                                Replied on{" "}
+                                {new Date(
+                                  message.repliedAt
+                                ).toLocaleDateString()}
                               </div>
                             )}
                           </div>
-                        )}
+                        )} */}
                       </div>
                       <div className="flex flex-row lg:flex-col gap-2">
-                        {message.status !== "replied" && (
-                          <Dialog open={replyDialogOpen && selectedMessage?.id === message.id}>
+                        <a
+                          href={`mailto:${feedback.email}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full"
+                        >
+                          <Button size="sm" className="w-full">
+                            <Reply className="h-4 w-4 mr-2" />
+                            Reply
+                          </Button>
+                        </a>
+                        {/* {message.status !== "replied" && (
+                          <Dialog
+                            open={
+                              replyDialogOpen &&
+                              selectedMessage?.id === message.id
+                            }
+                          >
                             <DialogTrigger asChild>
                               <Button
                                 size="sm"
@@ -265,7 +291,9 @@ export default function HelpCenter() {
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[625px]">
                               <DialogHeader>
-                                <DialogTitle>Reply to {message.senderName}</DialogTitle>
+                                <DialogTitle>
+                                  Reply to {message.senderName}
+                                </DialogTitle>
                                 <DialogDescription>
                                   Subject: {message.subject}
                                 </DialogDescription>
@@ -277,7 +305,9 @@ export default function HelpCenter() {
                                 <Textarea
                                   placeholder="Type your reply here..."
                                   value={adminReply}
-                                  onChange={(e) => setAdminReply(e.target.value)}
+                                  onChange={(e) =>
+                                    setAdminReply(e.target.value)
+                                  }
                                   rows={6}
                                 />
                               </div>
@@ -294,18 +324,25 @@ export default function HelpCenter() {
                                 </Button>
                                 <Button
                                   onClick={handleReply}
-                                  disabled={!adminReply.trim() || replyMutation.isPending}
+                                  disabled={
+                                    !adminReply.trim() ||
+                                    replyMutation.isPending
+                                  }
                                 >
-                                  {replyMutation.isPending ? "Sending..." : "Send Reply"}
+                                  {replyMutation.isPending
+                                    ? "Sending..."
+                                    : "Send Reply"}
                                 </Button>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
-                        )}
-                        
-                        <Select
+                        )} */}
+
+                        {/* <Select
                           value={message.status}
-                          onValueChange={(value) => handleStatusChange(message.id, value)}
+                          onValueChange={(value) =>
+                            handleStatusChange(message.id, value)
+                          }
                         >
                           <SelectTrigger className="w-32">
                             <SelectValue />
@@ -315,7 +352,7 @@ export default function HelpCenter() {
                             <SelectItem value="replied">Replied</SelectItem>
                             <SelectItem value="closed">Closed</SelectItem>
                           </SelectContent>
-                        </Select>
+                        </Select> */}
                       </div>
                     </div>
                   </CardContent>

@@ -18,8 +18,10 @@ import blogReducer from '../slices/blogSlice'
 import communityReducer from '../slices/communitySlice'
 import subscriberReducer from '../slices/subscribersSlice'
 import nannyShareReducer from "../slices/NannyShareData"
+import feedbackReducer from "../slices/feedbackSlice"
 
 const rootReducer = combineReducers({
+  feedbacks: feedbackReducer,
   subscribers: subscriberReducer,
   auth: authReducer,
   jobs: jobReducer,
