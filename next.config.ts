@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
    images: {
-    domains: ['images.unsplash.com', 'res.cloudinary.com'], // add any domain you load images from
+    domains: ['images.unsplash.com', 'res.cloudinary.com', "lh3.googleusercontent.com"], // add any domain you load images from
   },
     eslint: {
     // Warning: This allows production builds to successfully complete even if

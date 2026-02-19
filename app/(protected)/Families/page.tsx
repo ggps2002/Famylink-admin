@@ -61,6 +61,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Label } from "@/components/ui/label";
+import { ParentDialogScrollableContent } from "@/components/ScrollableUserDataViewParent";
 
 interface Parents {
   id: number;
@@ -455,7 +456,7 @@ export default function Users() {
                         </div>
 
                         <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm">
+                          {/* <Button variant="outline" size="sm">
                             <Edit className="w-4 h-4" />
                           </Button>
                           <Button
@@ -465,7 +466,8 @@ export default function Users() {
                             className="text-destructive hover:text-destructive"
                           >
                             <Trash2 className="w-4 h-4" />
-                          </Button>
+                          </Button> */}
+                          <ParentDialogScrollableContent user={user}/>
                         </div>
                       </div>
                     ))}
