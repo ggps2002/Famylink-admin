@@ -14,7 +14,7 @@ interface TopUsers {
   activeJobs?: number;
 }
 
-interface Users {
+export interface Users {
   id: number;
   username: string;
   email: string;
@@ -33,6 +33,10 @@ interface Users {
   createdAt: string;
   avgRating: number;
   totalReviews: number;
+  additionalInfo: [];
+  online: boolean,
+  premium: boolean,
+  ActiveAt: string
 }
 
 interface userData {

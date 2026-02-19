@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/pagination";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { DialogScrollableContent } from "@/components/ScrollableUserDataView";
 
 interface Nanny {
   id: number;
@@ -460,10 +461,7 @@ export default function Nannies() {
                             {nanny.avgRating} ({nanny.totalReviews} reviews)
                           </span>
                         </div>
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Profile
-                        </Button>
+                        <DialogScrollableContent nanny={nanny}/>
                       </div>
                     </CardContent>
                   </Card>
