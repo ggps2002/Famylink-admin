@@ -15,6 +15,7 @@ interface TopUsers {
 }
 
 export interface Users {
+  dob: string
   id: number;
   username: string;
   email: string;
